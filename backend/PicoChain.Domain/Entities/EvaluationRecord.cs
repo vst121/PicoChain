@@ -11,4 +11,10 @@ public sealed class EvaluationRecord
     public bool Passed { get; init; }
     public required string FailureReasonsJson { get; init; }
     public DateTimeOffset CreatedAt { get; init; } = DateTimeOffset.UtcNow;
+    public string AgentVersion { get; init; } = "unknown";
+    public string PromptVersion { get; init; } = "unknown";
+    public string ModelIdentifier { get; init; } = "unknown";
+    public int InputTokens { get; init; }
+    public int OutputTokens { get; init; }
+    public double EstimatedCost { get; init; }
 }

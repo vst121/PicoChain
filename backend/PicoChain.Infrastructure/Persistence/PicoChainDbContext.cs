@@ -141,6 +141,13 @@ public sealed class PicoChainDbContext(DbContextOptions<PicoChainDbContext> opti
 
         modelBuilder.Entity<EvaluationRecord>(entity =>
         {
+            entity.Property(x => x.AgentVersion).HasMaxLength(100);
+            entity.Property(x => x.PromptVersion).HasMaxLength(200);
+            entity.Property(x => x.ModelIdentifier).HasMaxLength(200);
+        });
+
+        modelBuilder.Entity<EvaluationRecord>(entity =>
+        {
             entity.HasKey(x => x.Id);
             entity.Property(x => x.ScenarioId).HasMaxLength(200).IsRequired();
             entity.Property(x => x.EvaluatorType).HasMaxLength(100).IsRequired();

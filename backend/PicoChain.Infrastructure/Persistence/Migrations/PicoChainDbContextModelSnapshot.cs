@@ -236,8 +236,16 @@ namespace PicoChain.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("AgentTaskId")
                         .HasColumnType("uuid");
 
+                    b.Property<string>("AgentVersion")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<double>("EstimatedCost")
+                        .HasColumnType("double precision");
 
                     b.Property<string>("EvaluatorType")
                         .IsRequired()
@@ -248,11 +256,27 @@ namespace PicoChain.Infrastructure.Persistence.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<int>("InputTokens")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("ModelIdentifier")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<int>("OutputTokens")
+                        .HasColumnType("integer");
+
                     b.Property<double>("OverallScore")
                         .HasColumnType("double precision");
 
                     b.Property<bool>("Passed")
                         .HasColumnType("boolean");
+
+                    b.Property<string>("PromptVersion")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
 
                     b.Property<string>("ScenarioId")
                         .IsRequired()

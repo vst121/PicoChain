@@ -132,7 +132,7 @@ app.MapPost("/api/v1/evaluations", async (
     if (response.IsSuccessStatusCode)
     {
         var evaluation = System.Text.Json.JsonSerializer.Deserialize<AiEvaluationResponse>(body)!;
-        await evaluationRecordService.RecordAsync(new EvaluationRecordInput(request.AgentTaskId, request.ScenarioId, evaluation.EvaluatorType, evaluation.Scores.GetRawText(), evaluation.OverallScore, evaluation.Passed, evaluation.FailureReasons.GetRawText()), cancellationToken);
+        await evaluationRecordService.RecordAsync(new EvaluationRecordInput(request.AgentTaskId, request.ScenarioId, evaluation.EvaluatorType, evaluation.Scores.GetRawText(), evaluation.OverallScore, evaluation.Passed, evaluation.FailureReasons.GetRawText(), evaluation.AgentVersion, evaluation.PromptVersion, evaluation.ModelIdentifier, evaluation.InputTokens, evaluation.OutputTokens, evaluation.EstimatedCost), cancellationToken);
     }
     return Results.Content(body, "application/json", statusCode: (int)response.StatusCode);
 });
@@ -371,7 +371,7 @@ public sealed record AgentTaskFailureRequest(string Reason);
 public sealed record HumanReviewRequest(string Reviewer, string Decision, string Notes);
 public sealed record CopilotInvestigationRequest(Guid ShipmentId, string CorrelationId);
 public sealed record EvaluationProxyRequest(Guid AgentTaskId, string ScenarioId, System.Text.Json.JsonElement Result);
-public sealed record AiEvaluationResponse(Guid EvaluationId, Guid AgentTaskId, string ScenarioId, string EvaluatorType, System.Text.Json.JsonElement Scores, double OverallScore, bool Passed, System.Text.Json.JsonElement FailureReasons);
+public sealed record AiEvaluationResponse(Guid EvaluationId, Guid AgentTaskId, string ScenarioId, string EvaluatorType, System.Text.Json.JsonElement Scores, double OverallScore, bool Passed, System.Text.Json.JsonElement FailureReasons, string AgentVersion = "unknown", string PromptVersion = "unknown", string ModelIdentifier = "unknown", int InputTokens = 0, int OutputTokens = 0, double EstimatedCost = 0);
 public sealed record AiInvestigationResponse(
     [property: System.Text.Json.Serialization.JsonPropertyName("shipment_id")] Guid ShipmentId,
     [property: System.Text.Json.Serialization.JsonPropertyName("probable_cause")] string ProbableCause,

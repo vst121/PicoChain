@@ -17,6 +17,12 @@ public sealed class EvaluationRecordService(PicoChainDbContext dbContext) : IEva
             OverallScore = input.OverallScore,
             Passed = input.Passed,
             FailureReasonsJson = input.FailureReasonsJson
+            ,AgentVersion = input.AgentVersion
+            ,PromptVersion = input.PromptVersion
+            ,ModelIdentifier = input.ModelIdentifier
+            ,InputTokens = input.InputTokens
+            ,OutputTokens = input.OutputTokens
+            ,EstimatedCost = input.EstimatedCost
         });
         await dbContext.SaveChangesAsync(cancellationToken);
     }
