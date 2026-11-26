@@ -14,4 +14,5 @@ public sealed class ActionProposal
 
     public void Approve() => Status = ActionProposalStatus.Approved;
     public void Reject() => Status = ActionProposalStatus.Rejected;
+    public void Execute() => Status = ActionProposalStatus.Executed;
 }

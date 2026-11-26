@@ -90,7 +90,7 @@ app.MapPost("/api/v1/copilot/investigate", async (
         new AgentRecommendation(
             task.AgentTaskId,
             "CarrierContact",
-            System.Text.Json.JsonSerializer.Serialize(new { recommendedAction = investigation.RecommendedAction }),
+            System.Text.Json.JsonSerializer.Serialize(new { shipmentId = request.ShipmentId, recommendedAction = investigation.RecommendedAction }),
             string.Join("; ", investigation.Evidence)),
         cancellationToken);
     await lifecycleService.CompleteAsync(task.AgentTaskId, cancellationToken);

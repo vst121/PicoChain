@@ -45,6 +45,7 @@ public sealed class ApprovalService(PicoChainDbContext dbContext) : IApprovalSer
         {
             request.Approve();
             proposal.Approve();
+            await ExecuteApprovedActionAsync(proposal, cancellationToken);
         }
         else
         {
@@ -65,4 +66,33 @@ public sealed class ApprovalService(PicoChainDbContext dbContext) : IApprovalSer
 
         return new ApprovalDecisionResult(request.Id, request.Status.ToString(), proposal.Status.ToString());
     }
+
+    private async Task ExecuteApprovedActionAsync(ActionProposal proposal, CancellationToken cancellationToken)
+    {
+        if (proposal.ActionType != "CarrierContact")
+            throw new InvalidOperationException($"Unsupported approved action type: {proposal.ActionType}");
+
+        var parameters = System.Text.Json.JsonSerializer.Deserialize<CarrierContactParameters>(proposal.ParametersJson)
+            ?? throw new InvalidOperationException("Invalid carrier contact parameters.");
+        var shipment = await dbContext.Shipments.SingleOrDefaultAsync(x => x.Id == parameters.ShipmentId, cancellationToken)
+            ?? throw new InvalidOperationException("Shipment for approved action was not found.");
+        shipment.Events.Add(new ShipmentEvent
+        {
+            ShipmentId = shipment.Id,
+            EventType = "CarrierContactRequested",
+            OccurredAt = DateTimeOffset.UtcNow,
+            Description = parameters.RecommendedAction
+        });
+        proposal.Execute();
+        dbContext.AuditRecords.Add(new AuditRecord
+        {
+            Action = "ApprovedActionExecuted",
+            EntityType = nameof(ActionProposal),
+            EntityId = proposal.Id,
+            Actor = "system",
+            DetailsJson = $"{{\"shipmentId\":\"{shipment.Id}\"}}"
+        });
+    }
+
+    private sealed record CarrierContactParameters(Guid ShipmentId, string RecommendedAction);
 }
