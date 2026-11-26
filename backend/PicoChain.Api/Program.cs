@@ -12,6 +12,8 @@ builder.Services.AddCors(options => options.AddPolicy("frontend", policy =>
     policy.WithOrigins(builder.Configuration.GetSection("Cors:Origins").Get<string[]>() ?? ["http://localhost:4200"])
         .AllowAnyHeader()
         .AllowAnyMethod()));
+builder.Services.AddHttpClient("ai-service", client =>
+    client.BaseAddress = new Uri(builder.Configuration["AiService:BaseUrl"] ?? "http://localhost:8000"));
 builder.Services.AddHealthChecks();
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddOpenTelemetry()
@@ -29,6 +31,20 @@ var app = builder.Build();
 app.UseCors("frontend");
 
 app.MapGet("/health", () => Results.Ok(new { status = "ok", service = "picochain-api" }));
+
+app.MapPost("/api/v1/copilot/investigate", async (
+    CopilotInvestigationRequest request,
+    IHttpClientFactory httpClientFactory,
+    CancellationToken cancellationToken) =>
+{
+    using var client = httpClientFactory.CreateClient("ai-service");
+    using var response = await client.PostAsJsonAsync(
+        "/api/v1/investigations",
+        new { shipment_id = request.ShipmentId, correlation_id = request.CorrelationId },
+        cancellationToken);
+    var body = await response.Content.ReadAsStringAsync(cancellationToken);
+    return Results.Content(body, "application/json", statusCode: (int)response.StatusCode);
+});
 app.MapHealthChecks("/health/ready");
 
 app.MapGet("/api/v1/shipments", async (
@@ -204,6 +220,7 @@ static async Task<IResult> TransitionAgentTaskAsync(Func<Task<bool>> transition)
 public sealed record DelayShipmentRequest(string Reason);
 public sealed record ShipmentInvestigationRequest(Guid ShipmentId);
 public sealed record AgentTaskFailureRequest(string Reason);
+public sealed record CopilotInvestigationRequest(Guid ShipmentId, string CorrelationId);
 
 public partial class Program
 {
