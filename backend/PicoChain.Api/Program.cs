@@ -49,6 +49,19 @@ app.MapGet("/api/v1/events", async (HttpResponse response, RealtimeEventHub hub,
 });
 
 app.MapGet("/health", () => Results.Ok(new { status = "ok", service = "picochain-api" }));
+app.MapGet("/health/ai", async (IHttpClientFactory factory, CancellationToken cancellationToken) =>
+{
+    try
+    {
+        var response = await factory.CreateClient("ai-service").GetAsync("/health", cancellationToken);
+        var body = await response.Content.ReadAsStringAsync(cancellationToken);
+        return Results.Content(body, "application/json", statusCode: (int)response.StatusCode);
+    }
+    catch (HttpRequestException)
+    {
+        return Results.Json(new { status = "unavailable", service = "picochain-ai-service" }, statusCode: 503);
+    }
+});
 
 app.MapPost("/api/v1/copilot/investigate", async (
     CopilotInvestigationRequest request,
