@@ -1,4 +1,50 @@
 services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__PicoChain: Host=postgres;Port=5432;Database=picochain;Username=picochain;Password=development-only
+      RabbitMq__Host: rabbitmq
+      RabbitMq__Port: 5672
+      RabbitMq__UserName: picochain
+      RabbitMq__Password: development-only
+      AiService__BaseUrl: http://ai-service:8000
+    ports:
+      - "5000:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  ai-service:
+    build:
+      context: ./ai-service
+      dockerfile: Dockerfile
+    environment:
+      PICOCHAIN_BACKEND_URL: http://backend:8080
+      PICOCHAIN_RABBITMQ_URL: amqp://picochain:development-only@rabbitmq:5672/
+      PICOCHAIN_OTLP_ENDPOINT: http://localhost:4317
+    ports:
+      - "8000:8000"
+    depends_on:
+      backend:
+        condition: service_started
+      rabbitmq:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "4200:80"
+    depends_on:
+      - backend
+
   postgres:
     image: postgres:17-alpine
     environment:
