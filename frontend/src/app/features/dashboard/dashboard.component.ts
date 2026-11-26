@@ -4,7 +4,7 @@ import { environment } from '../../../environments/environment';
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  template: `<main><h1>PicoChain Operations</h1><p class="muted">Logistics intelligence and controlled AI orchestration</p><section class="cards"><article class="card"><strong>{{ delayedShipments() }}</strong><p class="muted">Delayed shipments</p></article><article class="card"><strong>{{ pendingApprovals() }}</strong><p class="muted">Pending approvals</p></article><article class="card"><strong>{{ activeAgents() }}</strong><p class="muted">Active agent tasks</p></article></section></main>`,
+  template: `<main><h1>PicoChain Operations</h1><p class="muted">Logistics intelligence and controlled AI orchestration</p><p><a href="/shipments">View shipments</a></p><section class="cards"><article class="card"><strong>{{ delayedShipments() }}</strong><p class="muted">Delayed shipments</p></article><article class="card"><strong>{{ pendingApprovals() }}</strong><p class="muted">Pending approvals</p></article><article class="card"><strong>{{ activeAgents() }}</strong><p class="muted">Active agent tasks</p></article></section></main>`,
 })
 export class DashboardComponent {
   readonly delayedShipments = signal(0);
