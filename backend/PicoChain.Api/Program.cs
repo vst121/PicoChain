@@ -109,8 +109,8 @@ app.MapPost("/api/v1/copilot/investigate", async (
     var proposal = await executionGateway.SubmitRecommendationAsync(
         new AgentRecommendation(
             task.AgentTaskId,
-            "CarrierContact",
-            System.Text.Json.JsonSerializer.Serialize(new { shipmentId = request.ShipmentId, recommendedAction = investigation.RecommendedAction }),
+            "UpdateShipmentStatus",
+            System.Text.Json.JsonSerializer.Serialize(new { shipmentId = request.ShipmentId, newStatus = "InTransit" }),
             string.Join("; ", investigation.Evidence)),
         cancellationToken);
     await lifecycleService.CompleteAsync(task.AgentTaskId, cancellationToken);
