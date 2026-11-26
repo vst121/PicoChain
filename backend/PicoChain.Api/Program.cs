@@ -148,6 +148,23 @@ app.MapPost("/api/v1/approvals/{id:guid}/reject", async (
     return result is null ? Results.NotFound() : Results.Ok(result);
 });
 
+app.MapGet("/api/v1/approvals/pending", async (
+    IApprovalQueryService approvalQueryService,
+    CancellationToken cancellationToken) =>
+{
+    var approvals = await approvalQueryService.ListPendingAsync(cancellationToken);
+    return Results.Ok(approvals);
+});
+
+app.MapGet("/api/v1/approvals/{id:guid}", async (
+    Guid id,
+    IApprovalQueryService approvalQueryService,
+    CancellationToken cancellationToken) =>
+{
+    var approval = await approvalQueryService.GetAsync(id, cancellationToken);
+    return approval is null ? Results.NotFound() : Results.Ok(approval);
+});
+
 app.Run();
 
 static async Task<IResult> TransitionAgentTaskAsync(Func<Task<bool>> transition)

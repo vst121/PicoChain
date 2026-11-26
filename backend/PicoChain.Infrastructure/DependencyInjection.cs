@@ -29,6 +29,7 @@ public static class DependencyInjection
         services.AddScoped<IAgentTaskLifecycleService, AgentTaskLifecycleService>();
         services.AddScoped<IAgentExecutionGateway, AgentExecutionGateway>();
         services.AddScoped<IApprovalService, ApprovalService>();
+        services.AddScoped<IApprovalQueryService, ApprovalQueryService>();
         services.AddScoped<IOutboxWriter, OutboxWriter>();
         services.Configure<RabbitMqOptions>(configuration.GetSection(RabbitMqOptions.SectionName));
         services.AddSingleton<IRabbitMqPublisher, RabbitMqPublisher>();
