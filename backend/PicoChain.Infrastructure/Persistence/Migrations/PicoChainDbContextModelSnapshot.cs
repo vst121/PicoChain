@@ -227,6 +227,49 @@ namespace PicoChain.Infrastructure.Persistence.Migrations
                     b.ToTable("Customers");
                 });
 
+            modelBuilder.Entity("PicoChain.Domain.Entities.EvaluationRecord", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("AgentTaskId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("EvaluatorType")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("FailureReasonsJson")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<double>("OverallScore")
+                        .HasColumnType("double precision");
+
+                    b.Property<bool>("Passed")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("ScenarioId")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("ScoresJson")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AgentTaskId", "CreatedAt");
+
+                    b.ToTable("EvaluationRecords");
+                });
+
             modelBuilder.Entity("PicoChain.Domain.Entities.OperationalTask", b =>
                 {
                     b.Property<Guid>("Id")
