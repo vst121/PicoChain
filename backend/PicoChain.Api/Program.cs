@@ -300,6 +300,22 @@ app.MapGet("/api/v1/approvals/{id:guid}", async (
     return approval is null ? Results.NotFound() : Results.Ok(approval);
 });
 
+app.MapPost("/api/v1/action-proposals/{id:guid}/execute", async (
+    Guid id,
+    IActionExecutionService actionExecutionService,
+    CancellationToken cancellationToken) =>
+{
+    try
+    {
+        var result = await actionExecutionService.ExecuteAsync(id, "development-user", cancellationToken);
+        return result is null ? Results.NotFound() : Results.Ok(result);
+    }
+    catch (InvalidOperationException exception)
+    {
+        return Results.BadRequest(new { error = exception.Message });
+    }
+});
+
 app.MapGet("/api/v1/audit", async (
     string? correlationId,
     int? limit,
