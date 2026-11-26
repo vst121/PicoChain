@@ -6,11 +6,12 @@ type Approval = { approvalRequestId: string; proposalId?: string; actionType?: s
 @Component({
   selector: 'app-approvals',
   standalone: true,
-  template: `<main><h1>Approval Center</h1><p class="muted">Business-critical actions require backend-enforced approval.</p>@if (approvals().length === 0) {<p>No pending approvals.</p>} @for (approval of approvals(); track approval.approvalRequestId) {<article class="approval"><h2>{{ approval.actionType ?? 'Proposed action' }}</h2><p>{{ approval.evidenceSummary ?? 'Review the investigation evidence before deciding.' }}</p><details><summary>Parameters</summary><pre>{{ approval.parametersJson }}</pre></details><button (click)="decide(approval.approvalRequestId, 'approve')">Approve</button><button (click)="decide(approval.approvalRequestId, 'reject')">Reject</button></article>}</main>`,
+  template: `<main><h1>Approval Center</h1><p class="muted">Business-critical actions require backend-enforced approval.</p>@if (message()) {<p>{{ message() }}</p>} @if (approvals().length === 0) {<p>No pending approvals.</p>} @for (approval of approvals(); track approval.approvalRequestId) {<article class="approval"><h2>{{ approval.actionType ?? 'Proposed action' }}</h2><p>{{ approval.evidenceSummary ?? 'Review the investigation evidence before deciding.' }}</p><details><summary>Parameters</summary><pre>{{ approval.parametersJson }}</pre></details><button (click)="decide(approval.approvalRequestId, 'approve')">Approve</button><button (click)="decide(approval.approvalRequestId, 'reject')">Reject</button></article>}</main>`,
   styles: ['.approval{background:#fff;padding:1rem;margin:1rem 0;border-radius:10px}button{margin-right:.5rem;padding:.5rem 1rem}'],
 })
 export class ApprovalsComponent {
   readonly approvals = signal<Approval[]>([]);
+  readonly message = signal('');
 
   constructor() {
     void this.load();
@@ -29,7 +30,14 @@ export class ApprovalsComponent {
     if (response.ok) {
       const result = await response.json() as { proposalId?: string };
       if (decision === 'approve' && result.proposalId) {
-        await fetch(`${environment.apiBaseUrl.replace('/api/v1', '')}/api/v1/action-proposals/${result.proposalId}/execute`, { method: 'POST' });
+        const execution = await fetch(`${environment.apiBaseUrl}/action-proposals/${result.proposalId}/execute`, { method: 'POST' });
+        if (!execution.ok) {
+          this.message.set('Approval was recorded, but execution failed. Inspect the audit trail.');
+          return;
+        }
+        this.message.set('Approved action executed and verified successfully.');
+      } else if (decision === 'reject') {
+        this.message.set('Action proposal rejected.');
       }
       this.approvals.update(items => items.filter(item => item.approvalRequestId !== id));
     }
