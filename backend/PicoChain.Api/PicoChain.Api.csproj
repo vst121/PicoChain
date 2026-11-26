@@ -1,0 +1,1 @@
+<Project Sdk="Microsoft.NET.Sdk.Web"><ItemGroup><ProjectReference Include="..\PicoChain.Application\PicoChain.Application.csproj" /><ProjectReference Include="..\PicoChain.Infrastructure\PicoChain.Infrastructure.csproj" /><ProjectReference Include="..\PicoChain.Contracts\PicoChain.Contracts.csproj" /></ItemGroup></Project>

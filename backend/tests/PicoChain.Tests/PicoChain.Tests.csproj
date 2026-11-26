@@ -1,0 +1,1 @@
+<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><IsTestProject>true</IsTestProject></PropertyGroup><ItemGroup><ProjectReference Include="..\..\PicoChain.Domain\PicoChain.Domain.csproj" /><ProjectReference Include="..\..\PicoChain.Application\PicoChain.Application.csproj" /></ItemGroup></Project>
