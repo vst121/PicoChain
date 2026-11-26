@@ -37,6 +37,7 @@ public static class DependencyInjection
         services.AddScoped<IAuditQueryService, AuditQueryService>();
         services.AddScoped<IOrderQueryService, OrderQueryService>();
         services.AddScoped<IEvaluationRecordService, EvaluationRecordService>();
+        services.AddScoped<IEvaluationQueryService, EvaluationQueryService>();
         services.AddScoped<IApprovalService, ApprovalService>();
         services.AddScoped<IApprovalQueryService, ApprovalQueryService>();
         services.AddScoped<IOutboxWriter, OutboxWriter>();

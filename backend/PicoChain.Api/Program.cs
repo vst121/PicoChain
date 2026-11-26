@@ -131,6 +131,9 @@ app.MapPost("/api/v1/evaluations", async (
     }
     return Results.Content(body, "application/json", statusCode: (int)response.StatusCode);
 });
+
+app.MapGet("/api/v1/evaluations", async (IEvaluationQueryService service, CancellationToken cancellationToken) =>
+    Results.Ok(await service.ListAsync(cancellationToken)));
 app.MapHealthChecks("/health/ready");
 
 app.MapGet("/api/v1/shipments", async (
