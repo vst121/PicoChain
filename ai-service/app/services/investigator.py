@@ -6,6 +6,7 @@ from pydantic_ai import Agent
 from app.models.investigation import InvestigationResult
 from app.services.settings import Settings
 from app.tools.shipment_tools import ShipmentContextTool
+from app.observability.langfuse import LangfuseClient
 
 
 class ShipmentInvestigator:
@@ -15,6 +16,7 @@ class ShipmentInvestigator:
         self.settings = settings
         self.agent: Agent | None = None
         self.context_tool = ShipmentContextTool(settings.backend_url)
+        self.langfuse = LangfuseClient(settings)
 
     async def investigate(self, shipment_id: UUID) -> InvestigationResult:
         if self.settings.llm_provider == "none":
@@ -42,4 +44,16 @@ class ShipmentInvestigator:
             "Identify the probable cause, cite concrete evidence fields, and recommend the next action."
         )
         result = await self.agent.run(prompt)
+        try:
+            await self.langfuse.record_generation(
+                name="shipment-investigation",
+                input_data={"shipment_id": str(shipment_id), "context": context},
+                output_data=result.output.model_dump(mode="json"),
+                model=self.settings.llm_model,
+                prompt_version=self.settings.prompt_version,
+                metadata={"agent_version": self.settings.agent_version},
+            )
+        except Exception:
+            # Observability must never prevent a business investigation from completing.
+            pass
         return result.output

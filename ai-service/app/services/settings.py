@@ -13,6 +13,13 @@ class Settings(BaseSettings):
     rabbitmq_exchange: str = "picochain.events"
     rabbitmq_queue: str = "picochain.ai.shipment-delays"
     otlp_endpoint: str = "http://localhost:4317"
+    langfuse_host: str = "http://localhost:3000"
+    langfuse_public_key: str | None = None
+    langfuse_secret_key: str | None = None
+    prompt_version: str = "shipment-investigation-v1"
+    agent_version: str = "shipment-agent-v1"
+    model_cost_per_1k_input_tokens: float = 0.0
+    model_cost_per_1k_output_tokens: float = 0.0
 
 
 settings = Settings()

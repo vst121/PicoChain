@@ -3,6 +3,18 @@ from uuid import uuid4
 from app.models.evaluation import EvaluationRequest, EvaluationResult
 
 
+def compare_evaluations(results: list[EvaluationResult]) -> dict[str, object]:
+    """Produces a compact comparison for agent/model/prompt experiment runs."""
+    if not results:
+        return {"count": 0, "average_score": 0.0, "pass_rate": 0.0}
+    return {
+        "count": len(results),
+        "average_score": round(sum(item.overall_score for item in results) / len(results), 4),
+        "pass_rate": round(sum(item.passed for item in results) / len(results), 4),
+        "scenarios": sorted({item.scenario_id for item in results}),
+    }
+
+
 def evaluate_investigation(request: EvaluationRequest) -> EvaluationResult:
     result = request.result
     scores = {

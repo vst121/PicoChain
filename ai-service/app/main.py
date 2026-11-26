@@ -9,6 +9,8 @@ from app.services.evaluator import evaluate_investigation
 from app.services.investigator import ShipmentInvestigator
 from app.services.orchestrator import Orchestrator
 from app.tools.action_tools import ActionProposalTool
+from app.evaluation.reviews import HumanReview
+from app.services.evaluator import compare_evaluations
 from app.services.settings import settings
 from app.services.event_consumer import consume_shipment_delays
 from opentelemetry import trace
@@ -79,3 +81,14 @@ async def investigate(request: InvestigationRequest) -> dict[str, object]:
 @app.post("/api/v1/evaluations", status_code=200)
 async def evaluate(request: EvaluationRequest) -> dict[str, object]:
     return evaluate_investigation(request).model_dump(mode="json")
+
+
+@app.post("/api/v1/evaluations/compare", status_code=200)
+async def compare(requests: list[EvaluationRequest]) -> dict[str, object]:
+    results = [evaluate_investigation(item) for item in requests]
+    return compare_evaluations(results)
+
+
+@app.post("/api/v1/reviews", status_code=201)
+async def create_review(review: HumanReview) -> dict[str, object]:
+    return review.model_dump(mode="json")

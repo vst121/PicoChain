@@ -1,0 +1,7 @@
+[
+  {"scenario_id":"traffic-delay","expected_cause":"traffic","requires_approval":true},
+  {"scenario_id":"carrier-not-collected","expected_cause":"not collected","requires_approval":true},
+  {"scenario_id":"missing-proof-of-delivery","expected_cause":"missing delivery confirmation","requires_approval":true},
+  {"scenario_id":"conflicting-status","expected_cause":"conflicting shipment status","requires_approval":true},
+  {"scenario_id":"insufficient-evidence","expected_cause":"insufficient evidence","requires_approval":true}
+]
