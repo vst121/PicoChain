@@ -1,0 +1,10 @@
+<Solution>
+  <Folder Name="/tests/">
+    <Project Path="tests/PicoChain.Tests/PicoChain.Tests.csproj" />
+  </Folder>
+  <Project Path="PicoChain.Api/PicoChain.Api.csproj" />
+  <Project Path="PicoChain.Application/PicoChain.Application.csproj" />
+  <Project Path="PicoChain.Contracts/PicoChain.Contracts.csproj" />
+  <Project Path="PicoChain.Domain/PicoChain.Domain.csproj" />
+  <Project Path="PicoChain.Infrastructure/PicoChain.Infrastructure.csproj" />
+</Solution>
