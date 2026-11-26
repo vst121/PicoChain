@@ -17,6 +17,8 @@ using PicoChain.Application.Orders;
 using PicoChain.Infrastructure.Orders;
 using PicoChain.Application.Evaluations;
 using PicoChain.Infrastructure.Evaluations;
+using PicoChain.Application.Monitoring;
+using PicoChain.Infrastructure.Monitoring;
 
 namespace PicoChain.Infrastructure;
 
@@ -39,6 +41,7 @@ public static class DependencyInjection
         services.AddScoped<IEvaluationRecordService, EvaluationRecordService>();
         services.AddScoped<IEvaluationQueryService, EvaluationQueryService>();
         services.AddScoped<IHumanReviewService, HumanReviewService>();
+        services.AddScoped<IMonitoringQueryService, MonitoringQueryService>();
         services.AddScoped<IApprovalService, ApprovalService>();
         services.AddScoped<IApprovalQueryService, ApprovalQueryService>();
         services.AddScoped<IActionExecutionService, ActionExecutionService>();

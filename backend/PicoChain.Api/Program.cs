@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using PicoChain.Infrastructure.Persistence;
 using PicoChain.Application.Orders;
 using PicoChain.Application.Evaluations;
+using PicoChain.Application.Monitoring;
 using PicoChain.Infrastructure.Messaging;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -158,6 +159,8 @@ app.MapPost("/api/v1/evaluations/{id:guid}/reviews", async (
 
 app.MapGet("/api/v1/evaluations", async (IEvaluationQueryService service, CancellationToken cancellationToken) =>
     Results.Ok(await service.ListAsync(cancellationToken)));
+app.MapGet("/api/v1/monitoring/summary", async (IMonitoringQueryService service, CancellationToken cancellationToken) =>
+    Results.Ok(await service.GetSummaryAsync(cancellationToken)));
 app.MapHealthChecks("/health/ready");
 
 app.MapGet("/api/v1/shipments", async (
