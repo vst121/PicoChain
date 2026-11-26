@@ -8,6 +8,7 @@ using OpenTelemetry.Trace;
 using Microsoft.EntityFrameworkCore;
 using PicoChain.Infrastructure.Persistence;
 using PicoChain.Application.Orders;
+using PicoChain.Application.Evaluations;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -117,11 +118,17 @@ app.MapPost("/api/v1/copilot/investigate", async (
 app.MapPost("/api/v1/evaluations", async (
     EvaluationProxyRequest request,
     IHttpClientFactory httpClientFactory,
+    IEvaluationRecordService evaluationRecordService,
     CancellationToken cancellationToken) =>
 {
     using var client = httpClientFactory.CreateClient("ai-service");
     using var response = await client.PostAsJsonAsync("/api/v1/evaluations", request, cancellationToken);
     var body = await response.Content.ReadAsStringAsync(cancellationToken);
+    if (response.IsSuccessStatusCode)
+    {
+        var evaluation = System.Text.Json.JsonSerializer.Deserialize<AiEvaluationResponse>(body)!;
+        await evaluationRecordService.RecordAsync(new EvaluationRecordInput(request.AgentTaskId, request.ScenarioId, evaluation.EvaluatorType, evaluation.Scores.GetRawText(), evaluation.OverallScore, evaluation.Passed, evaluation.FailureReasons.GetRawText()), cancellationToken);
+    }
     return Results.Content(body, "application/json", statusCode: (int)response.StatusCode);
 });
 app.MapHealthChecks("/health/ready");
@@ -310,6 +317,7 @@ public sealed record ShipmentInvestigationRequest(Guid ShipmentId);
 public sealed record AgentTaskFailureRequest(string Reason);
 public sealed record CopilotInvestigationRequest(Guid ShipmentId, string CorrelationId);
 public sealed record EvaluationProxyRequest(Guid AgentTaskId, string ScenarioId, System.Text.Json.JsonElement Result);
+public sealed record AiEvaluationResponse(Guid EvaluationId, Guid AgentTaskId, string ScenarioId, string EvaluatorType, System.Text.Json.JsonElement Scores, double OverallScore, bool Passed, System.Text.Json.JsonElement FailureReasons);
 public sealed record AiInvestigationResponse(
     [property: System.Text.Json.Serialization.JsonPropertyName("shipment_id")] Guid ShipmentId,
     [property: System.Text.Json.Serialization.JsonPropertyName("probable_cause")] string ProbableCause,
