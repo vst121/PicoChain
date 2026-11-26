@@ -13,6 +13,8 @@ using PicoChain.Application.Agents;
 using PicoChain.Infrastructure.Agents;
 using PicoChain.Application.Auditing;
 using PicoChain.Infrastructure.Auditing;
+using PicoChain.Application.Orders;
+using PicoChain.Infrastructure.Orders;
 
 namespace PicoChain.Infrastructure;
 
@@ -31,6 +33,7 @@ public static class DependencyInjection
         services.AddScoped<IAgentTaskLifecycleService, AgentTaskLifecycleService>();
         services.AddScoped<IAgentExecutionGateway, AgentExecutionGateway>();
         services.AddScoped<IAuditQueryService, AuditQueryService>();
+        services.AddScoped<IOrderQueryService, OrderQueryService>();
         services.AddScoped<IApprovalService, ApprovalService>();
         services.AddScoped<IApprovalQueryService, ApprovalQueryService>();
         services.AddScoped<IOutboxWriter, OutboxWriter>();

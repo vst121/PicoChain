@@ -7,6 +7,7 @@ using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using Microsoft.EntityFrameworkCore;
 using PicoChain.Infrastructure.Persistence;
+using PicoChain.Application.Orders;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -131,6 +132,9 @@ app.MapGet("/api/v1/shipments", async (
     var shipments = await shipmentQueryService.ListAsync(status, cancellationToken);
     return Results.Ok(shipments);
 });
+
+app.MapGet("/api/v1/orders", async (IOrderQueryService service, CancellationToken cancellationToken) =>
+    Results.Ok(await service.ListAsync(cancellationToken)));
 
 app.MapGet("/api/v1/shipments/{id:guid}", async (
     Guid id,

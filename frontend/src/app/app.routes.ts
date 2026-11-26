@@ -6,5 +6,6 @@ import { AgentControlComponent } from './features/agent-control/agent-control.co
 import { AiCopilotComponent } from './features/ai-copilot/ai-copilot.component';
 import { ObservabilityComponent } from './features/observability/observability.component';
 import { AuditComponent } from './features/audit/audit.component';
+import { OrdersComponent } from './features/orders/orders.component';
 
-export const routes: Routes = [{ path: '', component: DashboardComponent }, { path: 'shipments', component: ShipmentsComponent }, { path: 'approvals', component: ApprovalsComponent }, { path: 'agent-control', component: AgentControlComponent }, { path: 'ai-copilot', component: AiCopilotComponent }, { path: 'observability', component: ObservabilityComponent }, { path: 'audit', component: AuditComponent }, { path: '**', redirectTo: '' }];
+export const routes: Routes = [{ path: '', component: DashboardComponent }, { path: 'shipments', component: ShipmentsComponent }, { path: 'orders', component: OrdersComponent }, { path: 'approvals', component: ApprovalsComponent }, { path: 'agent-control', component: AgentControlComponent }, { path: 'ai-copilot', component: AiCopilotComponent }, { path: 'observability', component: ObservabilityComponent }, { path: 'audit', component: AuditComponent }, { path: '**', redirectTo: '' }];

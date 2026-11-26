@@ -4,7 +4,7 @@ import { environment } from '../../../environments/environment';
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  template: `<main><h1>PicoChain Operations</h1><p class="muted">Logistics intelligence and controlled AI orchestration</p><nav><a href="/shipments">Shipments</a> · <a href="/ai-copilot">AI Copilot</a> · <a href="/approvals">Approvals</a> · <a href="/agent-control">Agent control</a> · <a href="/observability">Monitoring</a> · <a href="/audit">Audit</a></nav><section class="cards"><article class="card"><strong>{{ delayedShipments() }}</strong><p class="muted">Delayed shipments</p></article><article class="card"><strong>{{ pendingApprovals() }}</strong><p class="muted">Pending approvals</p></article><article class="card"><strong>{{ activeAgents() }}</strong><p class="muted">Active agent tasks</p></article></section></main>`,
+  template: `<main><h1>PicoChain Operations</h1><p class="muted">Logistics intelligence and controlled AI orchestration</p><nav><a href="/orders">Orders</a> · <a href="/shipments">Shipments</a> · <a href="/ai-copilot">AI Copilot</a> · <a href="/approvals">Approvals</a> · <a href="/agent-control">Agent control</a> · <a href="/observability">Monitoring</a> · <a href="/audit">Audit</a></nav><section class="cards"><article class="card"><strong>{{ delayedShipments() }}</strong><p class="muted">Delayed shipments</p></article><article class="card"><strong>{{ pendingApprovals() }}</strong><p class="muted">Pending approvals</p></article><article class="card"><strong>{{ activeAgents() }}</strong><p class="muted">Active agent tasks</p></article></section></main>`,
 })
 export class DashboardComponent {
   readonly delayedShipments = signal(0);
