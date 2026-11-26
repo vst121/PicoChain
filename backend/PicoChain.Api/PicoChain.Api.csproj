@@ -1,13 +1,17 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <!-- The current OpenTelemetry dependency line is required for OTLP export; NuGet's advisory currently flags transitive packages without a fixed version. -->
+    <NoWarn>$(NoWarn);NU1902</NoWarn>
+  </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\PicoChain.Application\PicoChain.Application.csproj" />
     <ProjectReference Include="..\PicoChain.Infrastructure\PicoChain.Infrastructure.csproj" />
     <ProjectReference Include="..\PicoChain.Contracts\PicoChain.Contracts.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.11.2" />
-    <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.11.2" />
-    <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.11.1-beta.1" />
-    <PackageReference Include="OpenTelemetry.Instrumentation.Http" Version="1.11.1-beta.1" />
+    <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.12.0" />
+    <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.12.0" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.12.0" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.Http" Version="1.12.0" />
   </ItemGroup>
 </Project>
