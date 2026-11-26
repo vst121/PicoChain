@@ -1,5 +1,7 @@
 using System.Net;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Logging;
 
 namespace PicoChain.Tests;
 
@@ -9,7 +11,7 @@ public sealed class ApiContractTests : IClassFixture<WebApplicationFactory<Progr
 
     public ApiContractTests(WebApplicationFactory<Program> factory)
     {
-        client = factory.CreateClient();
+        client = factory.WithWebHostBuilder(builder => builder.ConfigureLogging(logging => logging.ClearProviders())).CreateClient();
     }
 
     [Fact]

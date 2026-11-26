@@ -11,10 +11,39 @@ using PicoChain.Application.Orders;
 using PicoChain.Application.Evaluations;
 using PicoChain.Application.Monitoring;
 using PicoChain.Infrastructure.Messaging;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddProblemDetails();
+var authConfig = builder.Configuration.GetSection("Authentication");
+var authSigningKey = authConfig["SigningKey"] ?? "picochain-development-signing-key-change-me-please-32chars";
+var authIssuer = authConfig["Issuer"] ?? "picochain-local";
+var authAudience = authConfig["Audience"] ?? "picochain-api";
+var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(authSigningKey));
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuerSigningKey = true,
+        IssuerSigningKey = signingKey,
+        ValidateIssuer = true,
+        ValidIssuer = authIssuer,
+        ValidateAudience = true,
+        ValidAudience = authAudience,
+        ValidateLifetime = true,
+        RoleClaimType = ClaimTypes.Role,
+    };
+});
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("Operator", policy => policy.RequireRole("Operator", "Manager"));
+    options.AddPolicy("Manager", policy => policy.RequireRole("Manager"));
+});
 builder.Services.AddCors(options => options.AddPolicy("frontend", policy =>
     policy.WithOrigins(builder.Configuration.GetSection("Cors:Origins").Get<string[]>() ?? ["http://localhost:4200"])
         .AllowAnyHeader()
@@ -40,6 +69,8 @@ var app = builder.Build();
 
 app.UseExceptionHandler();
 app.UseCors("frontend");
+app.UseAuthentication();
+app.UseAuthorization();
 
 await using (var scope = app.Services.CreateAsyncScope())
 {
@@ -57,6 +88,25 @@ app.MapGet("/api/v1/events", async (HttpResponse response, RealtimeEventHub hub,
 });
 
 app.MapGet("/health", () => Results.Ok(new { status = "ok", service = "picochain-api" }));
+app.MapPost("/auth/dev-token", (DevTokenRequest request, IConfiguration configuration) =>
+{
+    var auth = configuration.GetSection("Authentication");
+    var claims = new[]
+    {
+        new Claim(ClaimTypes.Name, request.UserName),
+        new Claim(ClaimTypes.Role, request.Role)
+    };
+    var credentials = new SigningCredentials(
+        new SymmetricSecurityKey(Encoding.UTF8.GetBytes(auth["SigningKey"] ?? "picochain-development-signing-key-change-me-please-32chars")),
+        SecurityAlgorithms.HmacSha256);
+    var token = new JwtSecurityToken(
+        issuer: auth["Issuer"] ?? "picochain-local",
+        audience: auth["Audience"] ?? "picochain-api",
+        claims: claims,
+        expires: DateTime.UtcNow.AddHours(8),
+        signingCredentials: credentials);
+    return Results.Ok(new { accessToken = new JwtSecurityTokenHandler().WriteToken(token) });
+}).AllowAnonymous();
 app.MapGet("/health/ai", async (IHttpClientFactory factory, CancellationToken cancellationToken) =>
 {
     try
@@ -215,7 +265,7 @@ app.MapPost("/api/v1/approvals/{id:guid}/approve", async (
     var result = await approvalService.ApproveAsync(id, "development-user", cancellationToken);
     if (result is not null) eventHub.Publish("approval-updated", result);
     return result is null ? Results.NotFound() : Results.Ok(result);
-});
+}).RequireAuthorization("Manager");
 
 app.MapPost("/api/v1/agent-tasks/shipment-investigations", async (
     ShipmentInvestigationRequest request,
@@ -305,7 +355,7 @@ app.MapPost("/api/v1/approvals/{id:guid}/reject", async (
     var result = await approvalService.RejectAsync(id, "development-user", cancellationToken);
     if (result is not null) eventHub.Publish("approval-updated", result);
     return result is null ? Results.NotFound() : Results.Ok(result);
-});
+}).RequireAuthorization("Manager");
 
 app.MapGet("/api/v1/approvals/pending", async (
     IApprovalQueryService approvalQueryService,
@@ -348,7 +398,7 @@ app.MapPost("/api/v1/action-proposals/{id:guid}/execute", async (
     {
         return Results.BadRequest(new { error = exception.Message });
     }
-});
+}).RequireAuthorization("Manager");
 
 app.MapGet("/api/v1/audit", async (
     string? correlationId,
@@ -372,6 +422,7 @@ public sealed record DelayShipmentRequest(string Reason);
 public sealed record ShipmentInvestigationRequest(Guid ShipmentId);
 public sealed record AgentTaskFailureRequest(string Reason);
 public sealed record HumanReviewRequest(string Reviewer, string Decision, string Notes);
+public sealed record DevTokenRequest(string UserName, string Role);
 public sealed record CopilotInvestigationRequest(Guid ShipmentId, string CorrelationId);
 public sealed record EvaluationProxyRequest(Guid AgentTaskId, string ScenarioId, System.Text.Json.JsonElement Result);
 public sealed record AiEvaluationResponse(Guid EvaluationId, Guid AgentTaskId, string ScenarioId, string EvaluatorType, System.Text.Json.JsonElement Scores, double OverallScore, bool Passed, System.Text.Json.JsonElement FailureReasons, string AgentVersion = "unknown", string PromptVersion = "unknown", string ModelIdentifier = "unknown", int InputTokens = 0, int OutputTokens = 0, double EstimatedCost = 0);
