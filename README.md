@@ -119,3 +119,38 @@ uv run uvicorn app.main:app --reload --port 8000
 ```
 
 The frontend calls only the C# API. The C# API calls the AI service and remains the authority for action proposals, approvals, and business-state changes. Without provider credentials, the AI service fails explicitly instead of fabricating an investigation.
+# PicoChain
+
+AI-native logistics investigation and orchestration demo.
+
+## Demo startup
+
+Prerequisites:
+
+- Docker Desktop with Compose
+- An OpenAI-compatible API key for real agent execution
+
+Start the complete local environment:
+
+```powershell
+$env:PICOCHAIN_LLM_PROVIDER = "openai"
+$env:OPENAI_API_KEY = "your-key"
+docker compose up --build
+```
+
+Open:
+
+- Frontend: http://localhost:4200
+- Backend health: http://localhost:5000/health
+- AI service health: http://localhost:8000/health
+- RabbitMQ management: http://localhost:15672
+
+Demo flow:
+
+1. Open Shipments and mark a shipment delayed.
+2. Open AI Copilot and investigate that shipment, or wait for the event-triggered workflow.
+3. Review the evidence and recommendation in Approval Center.
+4. Approve the proposal.
+5. Verify the shipment status, agent task, audit record, and dashboard counters.
+
+If no LLM provider is configured, the AI service runs in explicitly labelled development mode and real investigations return an unavailable-provider response.

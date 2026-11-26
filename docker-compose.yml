@@ -26,6 +26,9 @@ services:
       dockerfile: Dockerfile
     environment:
       PICOCHAIN_BACKEND_URL: http://backend:8080
+      PICOCHAIN_LLM_PROVIDER: ${PICOCHAIN_LLM_PROVIDER:-none}
+      PICOCHAIN_LLM_MODEL: ${PICOCHAIN_LLM_MODEL:-openai:gpt-4o-mini}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
       PICOCHAIN_RABBITMQ_URL: amqp://picochain:development-only@rabbitmq:5672/
       PICOCHAIN_OTLP_ENDPOINT: http://localhost:4317
     ports:
