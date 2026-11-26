@@ -12,7 +12,12 @@ type Shipment = { id: string; shipmentNumber: string; status: string; eventCount
 export class ShipmentsComponent {
   readonly shipments = signal<Shipment[]>([]);
 
-  constructor() { void this.load(); }
+  constructor() {
+    void this.load();
+    const events = new EventSource(`${environment.apiBaseUrl.replace('/api/v1', '')}/api/v1/events`);
+    events.addEventListener('shipment-delayed', () => void this.load());
+    events.addEventListener('action-executed', () => void this.load());
+  }
 
   private async load(): Promise<void> {
     const response = await fetch(`${environment.apiBaseUrl}/shipments`);
