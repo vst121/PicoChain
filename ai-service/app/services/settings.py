@@ -8,6 +8,9 @@ class Settings(BaseSettings):
     llm_provider: str = "none"
     llm_model: str = "openai:gpt-4o-mini"
     openai_api_key: str | None = None
+    rabbitmq_url: str = "amqp://picochain:development-only@localhost:5672/"
+    rabbitmq_exchange: str = "picochain.events"
+    rabbitmq_queue: str = "picochain.ai.shipment-delays"
 
 
 settings = Settings()
