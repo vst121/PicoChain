@@ -2,6 +2,7 @@ using PicoChain.Infrastructure;
 using PicoChain.Application.Shipments;
 using PicoChain.Application.Approvals;
 using PicoChain.Application.Agents;
+using PicoChain.Application.Auditing;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -163,6 +164,19 @@ app.MapGet("/api/v1/approvals/{id:guid}", async (
 {
     var approval = await approvalQueryService.GetAsync(id, cancellationToken);
     return approval is null ? Results.NotFound() : Results.Ok(approval);
+});
+
+app.MapGet("/api/v1/audit", async (
+    string? correlationId,
+    int? limit,
+    IAuditQueryService auditQueryService,
+    CancellationToken cancellationToken) =>
+{
+    var records = await auditQueryService.ListAsync(
+        correlationId,
+        limit ?? 100,
+        cancellationToken);
+    return Results.Ok(records);
 });
 
 app.Run();
