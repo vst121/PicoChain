@@ -135,6 +135,8 @@ Start the complete local environment:
 ```powershell
 $env:PICOCHAIN_LLM_PROVIDER = "openai"
 $env:OPENAI_API_KEY = "your-key"
+$env:PICOCHAIN_LANGFUSE_PUBLIC_KEY = "your-langfuse-public-key"
+$env:PICOCHAIN_LANGFUSE_SECRET_KEY = "your-langfuse-secret-key"
 docker compose up --build
 ```
 
@@ -160,3 +162,5 @@ Automated smoke check:
 ```
 
 If no LLM provider is configured, the AI service runs in explicitly labelled development mode and real investigations return an unavailable-provider response.
+
+Langfuse is optional. When its keys are configured, generation traces, prompt versions, token usage, model metadata, and estimated costs are sent to the configured Langfuse host.
