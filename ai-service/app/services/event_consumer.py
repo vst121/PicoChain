@@ -28,10 +28,18 @@ async def consume_shipment_delays(settings: Settings, stop_event) -> None:
                         break
                     async with message.process(requeue=False):
                         event = json.loads(message.body)
+                        shipment_id = event.get("shipmentId") or event.get("ShipmentId")
+                        event_id = event.get("eventId") or event.get("EventId")
+                        correlation_id = event.get("correlationId") or event.get("CorrelationId") or event_id
+                        if not shipment_id:
+                            raise ValueError("ShipmentDelayed.v1 is missing shipmentId")
                         async with httpx.AsyncClient(base_url=settings.backend_url, timeout=30) as client:
-                            response = await client.post("/api/v1/copilot/investigate", json={"shipmentId": event["ShipmentId"], "correlationId": event.get("CorrelationId", event["EventId"])})
+                            response = await client.post(
+                                "/api/v1/copilot/investigate",
+                                json={"shipmentId": shipment_id, "correlationId": correlation_id},
+                            )
                             response.raise_for_status()
-                        logger.info("Processed ShipmentDelayed.v1 for shipment %s", event["ShipmentId"])
+                        logger.info("Processed ShipmentDelayed.v1 for shipment %s", shipment_id)
         except asyncio.CancelledError:
             raise
         except Exception:
