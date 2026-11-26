@@ -12,7 +12,12 @@ type AgentTask = { id: string; agentName?: string; status?: string; startedAt?: 
 export class AgentControlComponent {
   readonly tasks = signal<AgentTask[]>([]);
 
-  constructor() { void this.load(); }
+  constructor() {
+    void this.load();
+    const events = new EventSource(`${environment.apiBaseUrl.replace('/api/v1', '')}/api/v1/events`);
+    for (const name of ['agent-task-started', 'agent-task-failed', 'agent-task-completed'])
+      events.addEventListener(name, () => void this.load());
+  }
 
   private async load(): Promise<void> {
     const response = await fetch(`${environment.apiBaseUrl}/agent-tasks`);

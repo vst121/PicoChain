@@ -56,6 +56,7 @@ app.MapPost("/api/v1/copilot/investigate", async (
     IAgentTaskService agentTaskService,
     IAgentExecutionGateway executionGateway,
     IAgentTaskLifecycleService lifecycleService,
+    RealtimeEventHub eventHub,
     CancellationToken cancellationToken) =>
 {
     AgentTaskCreatedResult task;
@@ -70,6 +71,7 @@ app.MapPost("/api/v1/copilot/investigate", async (
     }
 
     await lifecycleService.StartAsync(task.AgentTaskId, cancellationToken);
+    eventHub.Publish("agent-task-started", new { agentTaskId = task.AgentTaskId });
     using var client = httpClientFactory.CreateClient("ai-service");
     using var response = await client.PostAsJsonAsync(
         "/api/v1/investigations",
@@ -79,6 +81,7 @@ app.MapPost("/api/v1/copilot/investigate", async (
     if (!response.IsSuccessStatusCode)
     {
         await lifecycleService.FailAsync(task.AgentTaskId, body, cancellationToken);
+        eventHub.Publish("agent-task-failed", new { agentTaskId = task.AgentTaskId });
         return Results.Content(body, "application/json", statusCode: (int)response.StatusCode);
     }
 
@@ -91,6 +94,7 @@ app.MapPost("/api/v1/copilot/investigate", async (
             string.Join("; ", investigation.Evidence)),
         cancellationToken);
     await lifecycleService.CompleteAsync(task.AgentTaskId, cancellationToken);
+    eventHub.Publish("agent-task-completed", new { agentTaskId = task.AgentTaskId, proposalId = proposal?.ProposalId });
     return Results.Ok(new { investigation, agentTaskId = task.AgentTaskId, proposal });
 });
 app.MapHealthChecks("/health/ready");
