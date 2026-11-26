@@ -121,6 +121,24 @@ app.MapPost("/api/v1/agent-tasks/{id:guid}/fail", async (
     CancellationToken cancellationToken) =>
     await TransitionAgentTaskAsync(() => lifecycleService.FailAsync(id, request.Reason, cancellationToken)));
 
+app.MapGet("/internal/agent-gateway/shipments/{id:guid}/context", async (
+    Guid id,
+    IAgentExecutionGateway gateway,
+    CancellationToken cancellationToken) =>
+{
+    var context = await gateway.GetShipmentContextAsync(id, cancellationToken);
+    return context is null ? Results.NotFound() : Results.Ok(context);
+});
+
+app.MapPost("/internal/agent-gateway/recommendations", async (
+    AgentRecommendation recommendation,
+    IAgentExecutionGateway gateway,
+    CancellationToken cancellationToken) =>
+{
+    var result = await gateway.SubmitRecommendationAsync(recommendation, cancellationToken);
+    return result is null ? Results.NotFound() : Results.Created($"/api/v1/action-proposals/{result.ProposalId}", result);
+});
+
 app.MapPost("/api/v1/approvals/{id:guid}/reject", async (
     Guid id,
     IApprovalService approvalService,
@@ -132,12 +150,12 @@ app.MapPost("/api/v1/approvals/{id:guid}/reject", async (
 
 app.Run();
 
+static async Task<IResult> TransitionAgentTaskAsync(Func<Task<bool>> transition)
+    => await transition() ? Results.Ok() : Results.NotFound();
+
 public sealed record DelayShipmentRequest(string Reason);
 public sealed record ShipmentInvestigationRequest(Guid ShipmentId);
 public sealed record AgentTaskFailureRequest(string Reason);
-
-static async Task<IResult> TransitionAgentTaskAsync(Func<Task<bool>> transition)
-    => await transition() ? Results.Ok() : Results.NotFound();
 
 public partial class Program
 {
