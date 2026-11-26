@@ -46,6 +46,19 @@ public sealed class ActionExecutionService(PicoChainDbContext dbContext) : IActi
             Actor = actor,
             DetailsJson = $"{{\"shipmentId\":\"{shipment.Id}\",\"newStatus\":\"{newStatus}\"}}"
         });
+        dbContext.OutboxMessages.Add(new Domain.Events.OutboxMessage
+        {
+            EventType = "ShipmentStatusUpdated.v1",
+            CorrelationId = proposal.Id.ToString("N"),
+            Payload = JsonSerializer.Serialize(new
+            {
+                EventId = Guid.NewGuid(),
+                ShipmentId = shipment.Id,
+                ShipmentNumber = shipment.ShipmentNumber,
+                Status = newStatus.ToString(),
+                OccurredAt = DateTimeOffset.UtcNow
+            })
+        });
         await dbContext.SaveChangesAsync(cancellationToken);
         return new ExecuteActionResult(proposal.Id, shipment.Id, shipment.Status.ToString(), proposal.Status.ToString());
     }
