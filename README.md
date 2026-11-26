@@ -1,26 +1,110 @@
 # PicoChain
 
-PicoChain is an AI-native logistics intelligence and orchestration platform.
+**AI-Native Logistics Intelligence & Orchestration Platform**
 
-## Local development
+PicoChain is an independent, AI-native logistics platform that uses specialized AI agents to investigate operational problems, analyze logistics data, recommend actions, and execute approved business workflows.
 
-Start the required infrastructure:
+The project demonstrates production-oriented Agentic AI engineering combined with enterprise software architecture, event-driven systems, and end-to-end observability.
 
-```sh
-docker compose up -d
+## Core Capabilities
+
+- **Logistics Management:** Customers, orders, shipments, carriers, and shipment events.
+- **AI Investigation:** Identify shipment delays, investigate root causes, and generate evidence-based recommendations.
+- **Agent Orchestration:** Coordinate specialized agents through controlled tools and workflows.
+- **AI Copilot:** Interact conversationally with logistics operations.
+- **Human-in-the-Loop:** Review, approve, or reject proposed business actions.
+- **Event-Driven Processing:** Asynchronous workflows powered by RabbitMQ.
+- **Observability:** Monitor application activity, distributed traces, agent executions, and system health.
+- **AI Evaluation:** Measure agent accuracy, task completion, policy compliance, performance, and cost.
+
+## Architecture & Technology Stack
+
+| Component                     | Technology                                        |
+| ----------------------------- | ------------------------------------------------- |
+| Frontend                      | Angular 18, TypeScript, Angular Material, Signals |
+| Backend                       | C#, .NET 10, ASP.NET Core                         |
+| Database                      | PostgreSQL, Entity Framework Core                 |
+| AI Service                    | Python, FastAPI, Pydantic AI                      |
+| Messaging                     | RabbitMQ                                          |
+| Real-time Updates             | Server-Sent Events (SSE)                          |
+| Telemetry                     | OpenTelemetry                                     |
+| Development Diagnostics       | .NET Aspire Dashboard                             |
+| Application Monitoring        | SigNoz                                            |
+| AI Observability & Evaluation | Langfuse                                          |
+| Logging                       | Serilog, Microsoft.Extensions.Logging             |
+| Infrastructure                | Docker Compose                                    |
+
+## AI Agents
+
+PicoChain is designed around four specialized agents:
+
+- **Orchestrator Agent:** Coordinates tasks and delegates work.
+- **Shipment Agent:** Investigates shipment issues and recommends resolutions.
+- **Order Agent:** Validates orders and identifies inconsistencies.
+- **Integration Agent:** Analyzes external integrations and generates mapping and validation definitions.
+
+The initial implementation focuses on the Orchestrator and Shipment Agents.
+
+## Primary Workflow
+
+**AI-Powered Shipment Delay Investigation and Resolution**
+
+1. A shipment delay event is received.
+2. The backend publishes an event through RabbitMQ.
+3. AI agents investigate the shipment using controlled tools.
+4. The agent analyzes evidence and recommends a resolution.
+5. The backend validates the proposed action.
+6. A user reviews and approves the proposal.
+7. The .NET backend executes and verifies the operation.
+8. The result is recorded and communicated to the frontend.
+
+## Architectural Principles
+
+- The C# backend owns business state, rules, permissions, and execution.
+- AI agents provide intelligence, not unrestricted business control.
+- Agents access business capabilities through explicitly defined tools and APIs.
+- Sensitive operations require appropriate authorization and human approval.
+- Every important operation must be traceable, observable, and auditable.
+- AI quality must be evaluated independently of successful execution.
+- Frontend, backend, and AI service maintain independent architectural boundaries.
+
+## Observability & Evaluation
+
+OpenTelemetry provides unified instrumentation across services.
+
+- **Aspire Dashboard:** Local development diagnostics.
+- **SigNoz:** Centralized logs, metrics, distributed traces, dashboards, and alerts.
+- **Langfuse:** Agent traces, LLM generations, token usage, costs, and AI evaluations.
+
+The objective is complete visibility from frontend requests and backend operations to agent execution, tool calls, and final business actions.
+
+## Project Structure
+
+```text
+PicoChain/
+├── backend/          # .NET application and domain
+├── ai-service/       # Python agents and AI evaluation
+├── frontend/         # Angular application
+├── infrastructure/   # Docker and observability
+├── docs/             # Architecture and project documentation
+├── docker-compose.yml
+└── README.md
 ```
 
-Run the backend from `backend/PicoChain.Api` and the AI service from `ai-service` with:
+## Development Roadmap
 
-```sh
-uv run uvicorn app.main:app --reload --port 8000
-```
+1. Foundation and infrastructure.
+2. Logistics domain and backend APIs.
+3. AI agent foundation.
+4. Shipment investigation workflow.
+5. Angular application and real-time updates.
+6. Observability and AI evaluation.
+7. Advanced agents and autonomous workflows.
 
-Run the Angular application from `frontend` with:
+## Project Objective
 
-```sh
-pnpm install
-pnpm start
-```
+PicoChain is not simply a chatbot connected to a logistics database.
 
-The current development flow requires `PICOCHAIN_LLM_PROVIDER` and the corresponding provider credentials for real AI investigations. Without them, the AI service explicitly returns a configuration error and does not fabricate a result.
+It demonstrates how specialized AI agents can investigate real business problems, collaborate through controlled tools, make evidence-based recommendations, and participate in enterprise workflows under explicit application governance.
+
+**Build reliable software. Give AI meaningful capabilities. Keep business execution under control.**
