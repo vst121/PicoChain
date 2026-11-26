@@ -55,6 +55,7 @@ app.MapPost("/api/v1/copilot/investigate", async (
     IHttpClientFactory httpClientFactory,
     IAgentTaskService agentTaskService,
     IAgentExecutionGateway executionGateway,
+    IAgentTaskLifecycleService lifecycleService,
     CancellationToken cancellationToken) =>
 {
     AgentTaskCreatedResult task;
@@ -68,6 +69,7 @@ app.MapPost("/api/v1/copilot/investigate", async (
         return Results.NotFound();
     }
 
+    await lifecycleService.StartAsync(task.AgentTaskId, cancellationToken);
     using var client = httpClientFactory.CreateClient("ai-service");
     using var response = await client.PostAsJsonAsync(
         "/api/v1/investigations",
@@ -75,16 +77,20 @@ app.MapPost("/api/v1/copilot/investigate", async (
         cancellationToken);
     var body = await response.Content.ReadAsStringAsync(cancellationToken);
     if (!response.IsSuccessStatusCode)
+    {
+        await lifecycleService.FailAsync(task.AgentTaskId, body, cancellationToken);
         return Results.Content(body, "application/json", statusCode: (int)response.StatusCode);
+    }
 
     var investigation = System.Text.Json.JsonSerializer.Deserialize<AiInvestigationResponse>(body)!;
     var proposal = await executionGateway.SubmitRecommendationAsync(
         new AgentRecommendation(
             task.AgentTaskId,
             "CarrierContact",
-            System.Text.Json.JsonSerializer.Serialize(new { investigation.recommended_action }),
-            string.Join("; ", investigation.evidence)),
+            System.Text.Json.JsonSerializer.Serialize(new { recommendedAction = investigation.RecommendedAction }),
+            string.Join("; ", investigation.Evidence)),
         cancellationToken);
+    await lifecycleService.CompleteAsync(task.AgentTaskId, cancellationToken);
     return Results.Ok(new { investigation, agentTaskId = task.AgentTaskId, proposal });
 });
 app.MapHealthChecks("/health/ready");

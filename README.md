@@ -108,3 +108,14 @@ PicoChain is not simply a chatbot connected to a logistics database.
 It demonstrates how specialized AI agents can investigate real business problems, collaborate through controlled tools, make evidence-based recommendations, and participate in enterprise workflows under explicit application governance.
 
 **Build reliable software. Give AI meaningful capabilities. Keep business execution under control.**
+
+## Enable real AI execution
+
+```powershell
+Copy-Item ai-service/.env.example ai-service/.env
+# Edit ai-service/.env and set OPENAI_API_KEY.
+cd ai-service
+uv run uvicorn app.main:app --reload --port 8000
+```
+
+The frontend calls only the C# API. The C# API calls the AI service and remains the authority for action proposals, approvals, and business-state changes. Without provider credentials, the AI service fails explicitly instead of fabricating an investigation.

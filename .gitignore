@@ -1,0 +1,6 @@
+ai-service/.env
+ai-service/.venv/
+frontend/node_modules/
+frontend/dist/
+**/bin/
+**/obj/
