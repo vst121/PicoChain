@@ -17,9 +17,13 @@ export class LoginComponent {
   role: CurrentUser['role'] = 'Operator';
   readonly busy = signal(false);
 
-  login(): void {
+  async login(): Promise<void> {
     this.busy.set(true);
-    this.auth.login(this.name, this.role);
-    void this.router.navigateByUrl('/');
+    try {
+      await this.auth.login(this.name, this.role);
+      await this.router.navigateByUrl('/');
+    } finally {
+      this.busy.set(false);
+    }
   }
 }

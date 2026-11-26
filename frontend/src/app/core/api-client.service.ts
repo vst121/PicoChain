@@ -17,7 +17,10 @@ export class ApiClientService {
   }
 
   private async request<T>(path: string, init: RequestInit): Promise<T> {
-    const response = await fetch(`${environment.apiBaseUrl}${path}`, init);
+    const headers = new Headers(init.headers);
+    const token = localStorage.getItem('picochain.access-token');
+    if (token) headers.set('Authorization', `Bearer ${token}`);
+    const response = await fetch(`${environment.apiBaseUrl}${path}`, { ...init, headers });
     if (!response.ok) throw new Error(`API request failed (${response.status})`);
     return await response.json() as T;
   }
