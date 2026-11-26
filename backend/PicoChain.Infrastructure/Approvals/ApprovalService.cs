@@ -64,7 +64,7 @@ public sealed class ApprovalService(PicoChainDbContext dbContext) : IApprovalSer
 
         await dbContext.SaveChangesAsync(cancellationToken);
 
-        return new ApprovalDecisionResult(request.Id, request.Status.ToString(), proposal.Status.ToString());
+        return new ApprovalDecisionResult(request.Id, proposal.Id, request.Status.ToString(), proposal.Status.ToString());
     }
 
     private async Task ExecuteApprovedActionAsync(ActionProposal proposal, CancellationToken cancellationToken)

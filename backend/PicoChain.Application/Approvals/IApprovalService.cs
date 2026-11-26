@@ -2,6 +2,7 @@ namespace PicoChain.Application.Approvals;
 
 public sealed record ApprovalDecisionResult(
     Guid ApprovalRequestId,
+    Guid ProposalId,
     string ApprovalStatus,
     string ProposalStatus);
 
