@@ -10,13 +10,14 @@ import { OrdersComponent } from './features/orders/orders.component';
 import { EvaluationsComponent } from './features/evaluations/evaluations.component';
 import { LoginComponent } from './features/auth/login.component';
 import { authGuard } from './core/auth.guard';
+import { managerGuard } from './core/manager.guard';
 
 export const routes: Routes = [
   { path: 'login', component: LoginComponent },
   { path: '', component: DashboardComponent, canActivate: [authGuard] },
   { path: 'shipments', component: ShipmentsComponent, canActivate: [authGuard] },
   { path: 'orders', component: OrdersComponent, canActivate: [authGuard] },
-  { path: 'approvals', component: ApprovalsComponent, canActivate: [authGuard] },
+  { path: 'approvals', component: ApprovalsComponent, canActivate: [authGuard, managerGuard] },
   { path: 'agent-control', component: AgentControlComponent, canActivate: [authGuard] },
   { path: 'ai-copilot', component: AiCopilotComponent, canActivate: [authGuard] },
   { path: 'observability', component: ObservabilityComponent, canActivate: [authGuard] },
