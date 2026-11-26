@@ -6,7 +6,7 @@ import { environment } from '../../../environments/environment';
   selector: 'app-ai-copilot',
   standalone: true,
   imports: [FormsModule],
-  template: `<main><h1>AI Copilot</h1><p class="muted">Investigations are executed by the AI service through the governed backend gateway.</p><label>Shipment ID <input [(ngModel)]="shipmentId" placeholder="00000000-0000-0000-0000-000000000000"></label><button (click)="investigate()" [disabled]="busy()">{{ busy() ? 'Investigating…' : 'Investigate delay' }}</button>@if (error()) {<p class="error">{{ error() }}</p>} @if (result()) {<article><h2>{{ result().investigation.probable_cause }}</h2><p>{{ result().investigation.decision_summary }}</p><h3>Evidence</h3><ul>@for (item of result().investigation.evidence; track item) {<li>{{ item }}</li>}</ul><p><strong>Recommendation:</strong> {{ result().investigation.recommended_action }}</p><p><strong>Approval request:</strong> {{ result().proposal?.approvalRequestId ?? 'not created' }}</p></article>}</main>`,
+  template: `<main><h1>AI Copilot</h1><p class="muted">Investigations are executed by the AI service through the governed backend gateway.</p><label>Shipment ID <input [(ngModel)]="shipmentId" placeholder="00000000-0000-0000-0000-000000000000"></label><button (click)="investigate()" [disabled]="busy()">{{ busy() ? 'Investigating…' : 'Investigate delay' }}</button>@if (error()) {<p class="error">{{ error() }}</p>} @if (result()) {<article><h2>{{ result().investigation.probable_cause }}</h2><p>{{ result().investigation.decision_summary }}</p><h3>Evidence</h3><ul>@for (item of result().investigation.evidence; track item) {<li>{{ item }}</li>}</ul><p><strong>Recommendation:</strong> {{ result().investigation.recommended_action }}</p><p><strong>Approval request:</strong> {{ result().proposal?.approvalRequestId ?? 'not created' }}</p>@if (evaluation()) {<p><strong>Evaluation:</strong> {{ evaluation().passed ? 'Passed' : 'Failed' }} ({{ evaluation().overall_score }})</p>}</article>}</main>`,
   styles: ['label{display:block;margin:1rem 0}input{display:block;width:28rem;max-width:100%;padding:.6rem}button{padding:.6rem 1rem}.error{color:#b42318}article{background:#fff;padding:1rem;margin-top:1rem;border-radius:10px}'],
 })
 export class AiCopilotComponent {
@@ -22,7 +22,11 @@ export class AiCopilotComponent {
       const body = await response.json();
       if (!response.ok) throw new Error(body.detail ?? 'Investigation failed');
       this.result.set(body);
+      const evaluationResponse = await fetch(`${environment.apiBaseUrl}/evaluations`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ agentTaskId: body.agentTaskId, scenarioId: 'copilot-shipment-delay', result: body.investigation }) });
+      if (evaluationResponse.ok) this.evaluation.set(await evaluationResponse.json());
     } catch (error) { this.error.set(error instanceof Error ? error.message : 'Investigation failed'); }
     finally { this.busy.set(false); }
   }
+
+  readonly evaluation = signal<any>(null);
 }

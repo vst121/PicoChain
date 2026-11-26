@@ -110,6 +110,17 @@ app.MapPost("/api/v1/copilot/investigate", async (
     eventHub.Publish("agent-task-completed", new { agentTaskId = task.AgentTaskId, proposalId = proposal?.ProposalId });
     return Results.Ok(new { investigation, agentTaskId = task.AgentTaskId, proposal });
 });
+
+app.MapPost("/api/v1/evaluations", async (
+    EvaluationProxyRequest request,
+    IHttpClientFactory httpClientFactory,
+    CancellationToken cancellationToken) =>
+{
+    using var client = httpClientFactory.CreateClient("ai-service");
+    using var response = await client.PostAsJsonAsync("/api/v1/evaluations", request, cancellationToken);
+    var body = await response.Content.ReadAsStringAsync(cancellationToken);
+    return Results.Content(body, "application/json", statusCode: (int)response.StatusCode);
+});
 app.MapHealthChecks("/health/ready");
 
 app.MapGet("/api/v1/shipments", async (
@@ -292,6 +303,7 @@ public sealed record DelayShipmentRequest(string Reason);
 public sealed record ShipmentInvestigationRequest(Guid ShipmentId);
 public sealed record AgentTaskFailureRequest(string Reason);
 public sealed record CopilotInvestigationRequest(Guid ShipmentId, string CorrelationId);
+public sealed record EvaluationProxyRequest(Guid AgentTaskId, string ScenarioId, System.Text.Json.JsonElement Result);
 public sealed record AiInvestigationResponse(
     [property: System.Text.Json.Serialization.JsonPropertyName("shipment_id")] Guid ShipmentId,
     [property: System.Text.Json.Serialization.JsonPropertyName("probable_cause")] string ProbableCause,
