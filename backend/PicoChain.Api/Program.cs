@@ -20,7 +20,7 @@ builder.Services.AddCors(options => options.AddPolicy("frontend", policy =>
 builder.Services.AddHttpClient("ai-service", client =>
     client.BaseAddress = new Uri(builder.Configuration["AiService:BaseUrl"] ?? "http://localhost:8000"));
 builder.Services.AddSingleton<RealtimeEventHub>();
-builder.Services.AddHealthChecks();
+builder.Services.AddHealthChecks().AddCheck<DatabaseHealthCheck>("database", tags: ["ready"]);
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddOpenTelemetry()
     .ConfigureResource(resource => resource.AddService("picochain-api"))
