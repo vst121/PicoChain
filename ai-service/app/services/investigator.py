@@ -1,4 +1,5 @@
 from uuid import UUID
+import os
 
 import httpx
 from pydantic_ai import Agent
@@ -24,6 +25,8 @@ class ShipmentInvestigator:
             context = response.json()
 
         if self.agent is None:
+            if self.settings.openai_api_key:
+                os.environ.setdefault("OPENAI_API_KEY", self.settings.openai_api_key)
             self.agent = Agent(
                 self.settings.llm_model,
                 output_type=InvestigationResult,
