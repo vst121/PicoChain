@@ -1,11 +1,11 @@
 from uuid import UUID
 import os
 
-import httpx
 from pydantic_ai import Agent
 
 from app.models.investigation import InvestigationResult
 from app.services.settings import Settings
+from app.tools.shipment_tools import ShipmentContextTool
 
 
 class ShipmentInvestigator:
@@ -14,15 +14,13 @@ class ShipmentInvestigator:
     def __init__(self, settings: Settings) -> None:
         self.settings = settings
         self.agent: Agent | None = None
+        self.context_tool = ShipmentContextTool(settings.backend_url)
 
     async def investigate(self, shipment_id: UUID) -> InvestigationResult:
         if self.settings.llm_provider == "none":
             raise RuntimeError("No LLM provider configured; set PICOCHAIN_LLM_PROVIDER for real execution")
 
-        async with httpx.AsyncClient(base_url=self.settings.backend_url, timeout=15) as client:
-            response = await client.get(f"/internal/agent-gateway/shipments/{shipment_id}/context")
-            response.raise_for_status()
-            context = response.json()
+        context = await self.context_tool.get(shipment_id)
 
         if self.agent is None:
             if self.settings.openai_api_key:
