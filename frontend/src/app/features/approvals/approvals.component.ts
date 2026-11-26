@@ -1,5 +1,6 @@
 import { Component, signal } from '@angular/core';
 import { environment } from '../../../environments/environment';
+import { AuthService } from '../../core/auth.service';
 
 type Approval = { approvalRequestId: string; proposalId?: string; actionType?: string; status?: string; evidenceSummary?: string; parametersJson?: string };
 
@@ -13,7 +14,7 @@ export class ApprovalsComponent {
   readonly approvals = signal<Approval[]>([]);
   readonly message = signal('');
 
-  constructor() {
+  constructor(private readonly auth: AuthService) {
     void this.load();
     const events = new EventSource(`${environment.apiBaseUrl.replace('/api/v1', '')}/api/v1/events`);
     events.addEventListener('approval-updated', () => void this.load());
@@ -26,11 +27,11 @@ export class ApprovalsComponent {
   }
 
   async decide(id: string, decision: 'approve' | 'reject'): Promise<void> {
-    const response = await fetch(`${environment.apiBaseUrl}/approvals/${id}/${decision}`, { method: 'POST' });
+    const response = await fetch(`${environment.apiBaseUrl}/approvals/${id}/${decision}`, { method: 'POST', headers: this.auth.authorizationHeaders() });
     if (response.ok) {
       const result = await response.json() as { proposalId?: string };
       if (decision === 'approve' && result.proposalId) {
-        const execution = await fetch(`${environment.apiBaseUrl}/action-proposals/${result.proposalId}/execute`, { method: 'POST' });
+        const execution = await fetch(`${environment.apiBaseUrl}/action-proposals/${result.proposalId}/execute`, { method: 'POST', headers: this.auth.authorizationHeaders() });
         if (!execution.ok) {
           this.message.set('Approval was recorded, but execution failed. Inspect the audit trail.');
           return;

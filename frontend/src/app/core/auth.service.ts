@@ -31,6 +31,11 @@ export class AuthService {
 
   token(): string | null { return localStorage.getItem(this.tokenKey); }
 
+  authorizationHeaders(): HeadersInit {
+    const token = this.token();
+    return token ? { Authorization: `Bearer ${token}` } : {};
+  }
+
   private readUser(): CurrentUser | null {
     try {
       const value = localStorage.getItem(this.storageKey);
