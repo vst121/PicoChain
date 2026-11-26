@@ -7,6 +7,7 @@ from app.models.investigation import InvestigationRequest
 from app.models.evaluation import EvaluationRequest
 from app.services.evaluator import evaluate_investigation
 from app.services.investigator import ShipmentInvestigator
+from app.services.orchestrator import Orchestrator
 from app.services.settings import settings
 from app.services.event_consumer import consume_shipment_delays
 from opentelemetry import trace
@@ -42,6 +43,7 @@ trace.set_tracer_provider(provider)
 FastAPIInstrumentor.instrument_app(app)
 HTTPXClientInstrumentor().instrument()
 investigator = ShipmentInvestigator(settings)
+orchestrator = Orchestrator(investigator)
 
 
 @app.get("/health")
@@ -52,7 +54,7 @@ async def health() -> dict[str, str]:
 @app.post("/api/v1/investigations", status_code=202)
 async def investigate(request: InvestigationRequest) -> dict[str, object]:
     try:
-        result = await investigator.investigate(request.shipment_id)
+        result = await orchestrator.investigate_shipment_delay(request.shipment_id)
     except httpx.HTTPError as error:
         raise HTTPException(status_code=502, detail="Backend context tool unavailable") from error
     except RuntimeError as error:
