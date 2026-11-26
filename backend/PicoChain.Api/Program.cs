@@ -8,6 +8,10 @@ using OpenTelemetry.Trace;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddCors(options => options.AddPolicy("frontend", policy =>
+    policy.WithOrigins(builder.Configuration.GetSection("Cors:Origins").Get<string[]>() ?? ["http://localhost:4200"])
+        .AllowAnyHeader()
+        .AllowAnyMethod()));
 builder.Services.AddHealthChecks();
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddOpenTelemetry()
@@ -21,6 +25,8 @@ builder.Services.AddOpenTelemetry()
         }));
 
 var app = builder.Build();
+
+app.UseCors("frontend");
 
 app.MapGet("/health", () => Results.Ok(new { status = "ok", service = "picochain-api" }));
 app.MapHealthChecks("/health/ready");
