@@ -13,4 +13,18 @@ public sealed class AgentTask
     public AgentTaskStatus Status { get; private set; } = AgentTaskStatus.Created;
     public DateTimeOffset CreatedAt { get; init; } = DateTimeOffset.UtcNow;
     public DateTimeOffset? CompletedAt { get; private set; }
+
+    public void Start() => Status = AgentTaskStatus.Running;
+
+    public void Complete()
+    {
+        Status = AgentTaskStatus.Completed;
+        CompletedAt = DateTimeOffset.UtcNow;
+    }
+
+    public void Fail()
+    {
+        Status = AgentTaskStatus.Failed;
+        CompletedAt = DateTimeOffset.UtcNow;
+    }
 }

@@ -26,6 +26,7 @@ public static class DependencyInjection
         services.AddScoped<IShipmentEventService, ShipmentEventService>();
         services.AddScoped<IAgentTaskService, AgentTaskService>();
         services.AddScoped<IAgentTaskQueryService, AgentTaskQueryService>();
+        services.AddScoped<IAgentTaskLifecycleService, AgentTaskLifecycleService>();
         services.AddScoped<IApprovalService, ApprovalService>();
         services.AddScoped<IOutboxWriter, OutboxWriter>();
         services.Configure<RabbitMqOptions>(configuration.GetSection(RabbitMqOptions.SectionName));

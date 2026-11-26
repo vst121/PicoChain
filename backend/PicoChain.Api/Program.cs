@@ -102,6 +102,25 @@ app.MapGet("/api/v1/agent-tasks/{id:guid}", async (
     return task is null ? Results.NotFound() : Results.Ok(task);
 });
 
+app.MapPost("/api/v1/agent-tasks/{id:guid}/start", async (
+    Guid id,
+    IAgentTaskLifecycleService lifecycleService,
+    CancellationToken cancellationToken) =>
+    await TransitionAgentTaskAsync(() => lifecycleService.StartAsync(id, cancellationToken)));
+
+app.MapPost("/api/v1/agent-tasks/{id:guid}/complete", async (
+    Guid id,
+    IAgentTaskLifecycleService lifecycleService,
+    CancellationToken cancellationToken) =>
+    await TransitionAgentTaskAsync(() => lifecycleService.CompleteAsync(id, cancellationToken)));
+
+app.MapPost("/api/v1/agent-tasks/{id:guid}/fail", async (
+    Guid id,
+    AgentTaskFailureRequest request,
+    IAgentTaskLifecycleService lifecycleService,
+    CancellationToken cancellationToken) =>
+    await TransitionAgentTaskAsync(() => lifecycleService.FailAsync(id, request.Reason, cancellationToken)));
+
 app.MapPost("/api/v1/approvals/{id:guid}/reject", async (
     Guid id,
     IApprovalService approvalService,
@@ -113,9 +132,13 @@ app.MapPost("/api/v1/approvals/{id:guid}/reject", async (
 
 app.Run();
 
+public sealed record DelayShipmentRequest(string Reason);
+public sealed record ShipmentInvestigationRequest(Guid ShipmentId);
+public sealed record AgentTaskFailureRequest(string Reason);
+
+static async Task<IResult> TransitionAgentTaskAsync(Func<Task<bool>> transition)
+    => await transition() ? Results.Ok() : Results.NotFound();
+
 public partial class Program
 {
 }
-
-public sealed record DelayShipmentRequest(string Reason);
-public sealed record ShipmentInvestigationRequest(Guid ShipmentId);
