@@ -6,7 +6,7 @@ type Shipment = { id: string; shipmentNumber: string; status: string; eventCount
 @Component({
   selector: 'app-shipments',
   standalone: true,
-  template: `<main><h1>Shipments</h1><p class="muted">Canonical shipment status from the PicoChain backend.</p><table><thead><tr><th>Shipment</th><th>Status</th><th>Events</th><th>Action</th></tr></thead><tbody>@for (shipment of shipments(); track shipment.id) {<tr><td>{{ shipment.shipmentNumber }}</td><td>{{ shipment.status }}</td><td>{{ shipment.eventCount }}</td><td><button (click)="markDelayed(shipment.id)">Mark delayed</button></td></tr>}</tbody></table></main>`,
+  template: `<main><h1>Shipments</h1><p class="muted">Canonical shipment status from the PicoChain backend.</p><table><thead><tr><th>Shipment</th><th>Status</th><th>Events</th><th>Action</th></tr></thead><tbody>@for (shipment of shipments(); track shipment.id) {<tr><td>{{ shipment.shipmentNumber }}</td><td>{{ shipment.status }}</td><td>{{ shipment.eventCount }}</td><td><button (click)="markDelayed(shipment.id)" [disabled]="shipment.status === 'Delayed'">{{ shipment.status === 'Delayed' ? 'Already delayed' : 'Mark delayed' }}</button></td></tr>}</tbody></table></main>`,
   styles: ['table{width:100%;background:#fff;border-collapse:collapse}th,td{text-align:left;padding:1rem;border-bottom:1px solid #e5e7eb}button{padding:.4rem .7rem}'],
 })
 export class ShipmentsComponent {

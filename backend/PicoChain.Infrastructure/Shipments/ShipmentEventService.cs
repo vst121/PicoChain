@@ -23,6 +23,11 @@ public sealed class ShipmentEventService(PicoChainDbContext dbContext) : IShipme
             return false;
         }
 
+        if (shipment.Status == Domain.Entities.ShipmentStatus.Delayed)
+        {
+            return true;
+        }
+
         var occurredAt = DateTimeOffset.UtcNow;
         shipment.MarkDelayed();
         var shipmentEvent = new Domain.Entities.ShipmentEvent
