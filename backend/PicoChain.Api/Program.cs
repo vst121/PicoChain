@@ -5,6 +5,8 @@ using PicoChain.Application.Agents;
 using PicoChain.Application.Auditing;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
+using Microsoft.EntityFrameworkCore;
+using PicoChain.Infrastructure.Persistence;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -30,6 +32,13 @@ builder.Services.AddOpenTelemetry()
 var app = builder.Build();
 
 app.UseCors("frontend");
+
+await using (var scope = app.Services.CreateAsyncScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<PicoChainDbContext>();
+    await db.Database.MigrateAsync();
+    await SeedData.ApplyAsync(db);
+}
 
 app.MapGet("/api/v1/events", async (HttpResponse response, RealtimeEventHub hub, CancellationToken cancellationToken) =>
 {
