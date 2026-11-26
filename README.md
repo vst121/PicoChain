@@ -153,4 +153,10 @@ Demo flow:
 4. Approve the proposal.
 5. Verify the shipment status, agent task, audit record, and dashboard counters.
 
+Automated smoke check:
+
+```powershell
+.\scripts\demo-smoke.ps1
+```
+
 If no LLM provider is configured, the AI service runs in explicitly labelled development mode and real investigations return an unavailable-provider response.
