@@ -53,15 +53,39 @@ app.MapGet("/health", () => Results.Ok(new { status = "ok", service = "picochain
 app.MapPost("/api/v1/copilot/investigate", async (
     CopilotInvestigationRequest request,
     IHttpClientFactory httpClientFactory,
+    IAgentTaskService agentTaskService,
+    IAgentExecutionGateway executionGateway,
     CancellationToken cancellationToken) =>
 {
+    AgentTaskCreatedResult task;
+    try
+    {
+        task = await agentTaskService.CreateShipmentInvestigationAsync(
+            request.ShipmentId, request.CorrelationId, null, cancellationToken);
+    }
+    catch (InvalidOperationException)
+    {
+        return Results.NotFound();
+    }
+
     using var client = httpClientFactory.CreateClient("ai-service");
     using var response = await client.PostAsJsonAsync(
         "/api/v1/investigations",
-        new { shipment_id = request.ShipmentId, correlation_id = request.CorrelationId },
+        new { shipment_id = request.ShipmentId, correlation_id = request.CorrelationId, agent_task_id = task.AgentTaskId },
         cancellationToken);
     var body = await response.Content.ReadAsStringAsync(cancellationToken);
-    return Results.Content(body, "application/json", statusCode: (int)response.StatusCode);
+    if (!response.IsSuccessStatusCode)
+        return Results.Content(body, "application/json", statusCode: (int)response.StatusCode);
+
+    var investigation = System.Text.Json.JsonSerializer.Deserialize<AiInvestigationResponse>(body)!;
+    var proposal = await executionGateway.SubmitRecommendationAsync(
+        new AgentRecommendation(
+            task.AgentTaskId,
+            "CarrierContact",
+            System.Text.Json.JsonSerializer.Serialize(new { investigation.recommended_action }),
+            string.Join("; ", investigation.evidence)),
+        cancellationToken);
+    return Results.Ok(new { investigation, agentTaskId = task.AgentTaskId, proposal });
 });
 app.MapHealthChecks("/health/ready");
 
@@ -245,6 +269,14 @@ public sealed record DelayShipmentRequest(string Reason);
 public sealed record ShipmentInvestigationRequest(Guid ShipmentId);
 public sealed record AgentTaskFailureRequest(string Reason);
 public sealed record CopilotInvestigationRequest(Guid ShipmentId, string CorrelationId);
+public sealed record AiInvestigationResponse(
+    [property: System.Text.Json.Serialization.JsonPropertyName("shipment_id")] Guid ShipmentId,
+    [property: System.Text.Json.Serialization.JsonPropertyName("probable_cause")] string ProbableCause,
+    [property: System.Text.Json.Serialization.JsonPropertyName("evidence")] string[] Evidence,
+    [property: System.Text.Json.Serialization.JsonPropertyName("recommended_action")] string RecommendedAction,
+    [property: System.Text.Json.Serialization.JsonPropertyName("requires_approval")] bool RequiresApproval,
+    [property: System.Text.Json.Serialization.JsonPropertyName("confidence")] double Confidence,
+    [property: System.Text.Json.Serialization.JsonPropertyName("decision_summary")] string DecisionSummary);
 
 public partial class Program
 {
