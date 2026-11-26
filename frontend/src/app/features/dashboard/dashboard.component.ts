@@ -1,5 +1,6 @@
 import { Component, signal } from '@angular/core';
-import { environment } from '../../../environments/environment';
+import { ApiClientService } from '../../core/api-client.service';
+import { RealtimeService } from '../../core/realtime.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -11,18 +12,20 @@ export class DashboardComponent {
   readonly pendingApprovals = signal(0);
   readonly activeAgents = signal(0);
 
-  constructor() {
+  constructor(private readonly api: ApiClientService, realtime: RealtimeService) {
     void this.load();
-    const events = new EventSource(`${environment.apiBaseUrl.replace('/api/v1', '')}/api/v1/events`);
-    events.addEventListener('shipment-delayed', () => void this.load());
-    events.addEventListener('approval-updated', () => void this.load());
+    realtime.connect({
+      'shipment-delayed': () => void this.load(),
+      'approval-updated': () => void this.load(),
+      'action-executed': () => void this.load(),
+    });
   }
 
   private async load(): Promise<void> {
     const [shipments, approvals, agents] = await Promise.all([
-      fetch(`${environment.apiBaseUrl}/shipments?status=Delayed`).then(response => response.json()),
-      fetch(`${environment.apiBaseUrl}/approvals/pending`).then(response => response.json()),
-      fetch(`${environment.apiBaseUrl}/agent-tasks`).then(response => response.json()),
+      this.api.get<any[]>('/shipments?status=Delayed'),
+      this.api.get<any[]>('/approvals/pending'),
+      this.api.get<any[]>('/agent-tasks'),
     ]);
     this.delayedShipments.set(Array.isArray(shipments) ? shipments.length : 0);
     this.pendingApprovals.set(Array.isArray(approvals) ? approvals.length : 0);
