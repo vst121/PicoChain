@@ -11,6 +11,7 @@ using PicoChain.Application.Orders;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddProblemDetails();
 builder.Services.AddCors(options => options.AddPolicy("frontend", policy =>
     policy.WithOrigins(builder.Configuration.GetSection("Cors:Origins").Get<string[]>() ?? ["http://localhost:4200"])
         .AllowAnyHeader()
@@ -32,6 +33,7 @@ builder.Services.AddOpenTelemetry()
 
 var app = builder.Build();
 
+app.UseExceptionHandler();
 app.UseCors("frontend");
 
 await using (var scope = app.Services.CreateAsyncScope())
