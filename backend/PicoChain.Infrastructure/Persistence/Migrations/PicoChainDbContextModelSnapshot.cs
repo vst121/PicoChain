@@ -270,6 +270,39 @@ namespace PicoChain.Infrastructure.Persistence.Migrations
                     b.ToTable("EvaluationRecords");
                 });
 
+            modelBuilder.Entity("PicoChain.Domain.Entities.HumanReviewRecord", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Decision")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)");
+
+                    b.Property<Guid>("EvaluationId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Notes")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset>("ReviewedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Reviewer")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EvaluationId");
+
+                    b.ToTable("HumanReviewRecords");
+                });
+
             modelBuilder.Entity("PicoChain.Domain.Entities.OperationalTask", b =>
                 {
                     b.Property<Guid>("Id")

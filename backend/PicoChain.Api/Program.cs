@@ -137,6 +137,25 @@ app.MapPost("/api/v1/evaluations", async (
     return Results.Content(body, "application/json", statusCode: (int)response.StatusCode);
 });
 
+app.MapPost("/api/v1/evaluations/{id:guid}/reviews", async (
+    Guid id,
+    HumanReviewRequest request,
+    IHumanReviewService service,
+    CancellationToken cancellationToken) =>
+{
+    try
+    {
+        var result = await service.CreateAsync(
+            new HumanReviewInput(id, request.Reviewer, request.Decision, request.Notes),
+            cancellationToken);
+        return Results.Created($"/api/v1/evaluations/{id}/reviews/{result.ReviewId}", result);
+    }
+    catch (InvalidOperationException exception)
+    {
+        return Results.BadRequest(new { error = exception.Message });
+    }
+});
+
 app.MapGet("/api/v1/evaluations", async (IEvaluationQueryService service, CancellationToken cancellationToken) =>
     Results.Ok(await service.ListAsync(cancellationToken)));
 app.MapHealthChecks("/health/ready");
@@ -349,6 +368,7 @@ static async Task<IResult> TransitionAgentTaskAsync(Func<Task<bool>> transition)
 public sealed record DelayShipmentRequest(string Reason);
 public sealed record ShipmentInvestigationRequest(Guid ShipmentId);
 public sealed record AgentTaskFailureRequest(string Reason);
+public sealed record HumanReviewRequest(string Reviewer, string Decision, string Notes);
 public sealed record CopilotInvestigationRequest(Guid ShipmentId, string CorrelationId);
 public sealed record EvaluationProxyRequest(Guid AgentTaskId, string ScenarioId, System.Text.Json.JsonElement Result);
 public sealed record AiEvaluationResponse(Guid EvaluationId, Guid AgentTaskId, string ScenarioId, string EvaluatorType, System.Text.Json.JsonElement Scores, double OverallScore, bool Passed, System.Text.Json.JsonElement FailureReasons);

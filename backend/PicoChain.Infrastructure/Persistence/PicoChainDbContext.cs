@@ -19,6 +19,7 @@ public sealed class PicoChainDbContext(DbContextOptions<PicoChainDbContext> opti
     public DbSet<ApprovalRequest> ApprovalRequests => Set<ApprovalRequest>();
     public DbSet<AuditRecord> AuditRecords => Set<AuditRecord>();
     public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
+    public DbSet<HumanReviewRecord> HumanReviewRecords => Set<HumanReviewRecord>();
     public DbSet<EvaluationRecord> EvaluationRecords => Set<EvaluationRecord>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -128,6 +129,14 @@ public sealed class PicoChainDbContext(DbContextOptions<PicoChainDbContext> opti
             entity.Property(x => x.Payload).IsRequired();
             entity.HasIndex(x => new { x.PublishedAt, x.OccurredAt });
             entity.HasIndex(x => x.CorrelationId);
+        });
+
+        modelBuilder.Entity<HumanReviewRecord>(entity =>
+        {
+            entity.HasKey(x => x.Id);
+            entity.Property(x => x.Reviewer).HasMaxLength(200).IsRequired();
+            entity.Property(x => x.Decision).HasConversion<string>().HasMaxLength(30);
+            entity.HasIndex(x => x.EvaluationId);
         });
 
         modelBuilder.Entity<EvaluationRecord>(entity =>
