@@ -12,7 +12,12 @@ type Approval = { approvalRequestId: string; proposalId?: string; actionType?: s
 export class ApprovalsComponent {
   readonly approvals = signal<Approval[]>([]);
 
-  constructor() { void this.load(); }
+  constructor() {
+    void this.load();
+    const events = new EventSource(`${environment.apiBaseUrl.replace('/api/v1', '')}/api/v1/events`);
+    events.addEventListener('approval-updated', () => void this.load());
+    events.addEventListener('action-executed', () => void this.load());
+  }
 
   private async load(): Promise<void> {
     const response = await fetch(`${environment.apiBaseUrl}/approvals/pending`);

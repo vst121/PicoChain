@@ -303,11 +303,21 @@ app.MapGet("/api/v1/approvals/{id:guid}", async (
 app.MapPost("/api/v1/action-proposals/{id:guid}/execute", async (
     Guid id,
     IActionExecutionService actionExecutionService,
+    RealtimeEventHub eventHub,
     CancellationToken cancellationToken) =>
 {
     try
     {
         var result = await actionExecutionService.ExecuteAsync(id, "development-user", cancellationToken);
+        if (result is not null)
+        {
+            eventHub.Publish("action-executed", new
+            {
+                result.ProposalId,
+                result.ShipmentId,
+                result.ShipmentStatus
+            });
+        }
         return result is null ? Results.NotFound() : Results.Ok(result);
     }
     catch (InvalidOperationException exception)
