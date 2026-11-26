@@ -7,6 +7,7 @@ from app.models.investigation import InvestigationResult
 from app.services.settings import Settings
 from app.tools.shipment_tools import ShipmentContextTool
 from app.observability.langfuse import LangfuseClient
+from app.observability.costs import calculate_usage_cost
 
 
 class ShipmentInvestigator:
@@ -44,6 +45,10 @@ class ShipmentInvestigator:
             "Identify the probable cause, cite concrete evidence fields, and recommend the next action."
         )
         result = await self.agent.run(prompt)
+        usage = result.usage() if callable(getattr(result, "usage", None)) else None
+        input_tokens = int(getattr(usage, "input_tokens", 0) or 0)
+        output_tokens = int(getattr(usage, "output_tokens", 0) or 0)
+        cost = calculate_usage_cost(self.settings, input_tokens, output_tokens)
         try:
             await self.langfuse.record_generation(
                 name="shipment-investigation",
@@ -51,7 +56,11 @@ class ShipmentInvestigator:
                 output_data=result.output.model_dump(mode="json"),
                 model=self.settings.llm_model,
                 prompt_version=self.settings.prompt_version,
-                metadata={"agent_version": self.settings.agent_version},
+                usage={"input": input_tokens, "output": output_tokens},
+                metadata={
+                    "agent_version": self.settings.agent_version,
+                    "estimated_cost": cost.estimated_cost,
+                },
             )
         except Exception:
             # Observability must never prevent a business investigation from completing.
