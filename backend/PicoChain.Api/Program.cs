@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using PicoChain.Infrastructure.Persistence;
 using PicoChain.Application.Orders;
 using PicoChain.Application.Evaluations;
+using PicoChain.Infrastructure.Messaging;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,7 +21,9 @@ builder.Services.AddCors(options => options.AddPolicy("frontend", policy =>
 builder.Services.AddHttpClient("ai-service", client =>
     client.BaseAddress = new Uri(builder.Configuration["AiService:BaseUrl"] ?? "http://localhost:8000"));
 builder.Services.AddSingleton<RealtimeEventHub>();
-builder.Services.AddHealthChecks().AddCheck<DatabaseHealthCheck>("database", tags: ["ready"]);
+builder.Services.AddHealthChecks()
+    .AddCheck<DatabaseHealthCheck>("database", tags: ["ready"])
+    .AddCheck<RabbitMqHealthCheck>("rabbitmq", tags: ["ready"]);
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddOpenTelemetry()
     .ConfigureResource(resource => resource.AddService("picochain-api"))
