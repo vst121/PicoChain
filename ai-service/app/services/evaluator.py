@@ -12,6 +12,10 @@ def compare_evaluations(results: list[EvaluationResult]) -> dict[str, object]:
         "average_score": round(sum(item.overall_score for item in results) / len(results), 4),
         "pass_rate": round(sum(item.passed for item in results) / len(results), 4),
         "scenarios": sorted({item.scenario_id for item in results}),
+        "agent_versions": sorted({item.agent_version for item in results}),
+        "prompt_versions": sorted({item.prompt_version for item in results}),
+        "models": sorted({item.model_identifier for item in results}),
+        "estimated_cost": round(sum(item.estimated_cost for item in results), 8),
     }
 
 
@@ -40,4 +44,10 @@ def evaluate_investigation(request: EvaluationRequest) -> EvaluationResult:
         overall_score=overall,
         passed=not failures and overall >= 0.75,
         failure_reasons=failures,
+        agent_version=request.agent_version,
+        prompt_version=request.prompt_version,
+        model_identifier=request.model_identifier,
+        input_tokens=request.input_tokens,
+        output_tokens=request.output_tokens,
+        estimated_cost=request.estimated_cost,
     )
