@@ -2,6 +2,8 @@ from fastapi import FastAPI, HTTPException
 import httpx
 
 from app.models.investigation import InvestigationRequest
+from app.models.evaluation import EvaluationRequest
+from app.services.evaluator import evaluate_investigation
 from app.services.investigator import ShipmentInvestigator
 from app.services.settings import settings
 
@@ -25,3 +27,8 @@ async def investigate(request: InvestigationRequest) -> dict[str, object]:
     except NotImplementedError as error:
         raise HTTPException(status_code=501, detail=str(error)) from error
     return result.model_dump(mode="json")
+
+
+@app.post("/api/v1/evaluations", status_code=200)
+async def evaluate(request: EvaluationRequest) -> dict[str, object]:
+    return evaluate_investigation(request).model_dump(mode="json")
