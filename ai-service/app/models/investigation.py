@@ -7,6 +7,7 @@ class InvestigationRequest(BaseModel):
     shipment_id: UUID
     correlation_id: str = Field(min_length=1)
     trace_parent: str | None = None
+    agent_task_id: UUID | None = None
 
 
 class InvestigationResult(BaseModel):

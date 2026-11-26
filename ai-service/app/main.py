@@ -8,6 +8,7 @@ from app.models.evaluation import EvaluationRequest
 from app.services.evaluator import evaluate_investigation
 from app.services.investigator import ShipmentInvestigator
 from app.services.orchestrator import Orchestrator
+from app.tools.action_tools import ActionProposalTool
 from app.services.settings import settings
 from app.services.event_consumer import consume_shipment_delays
 from opentelemetry import trace
@@ -44,6 +45,7 @@ FastAPIInstrumentor.instrument_app(app)
 HTTPXClientInstrumentor().instrument()
 investigator = ShipmentInvestigator(settings)
 orchestrator = Orchestrator(investigator)
+action_tool = ActionProposalTool(settings.backend_url)
 
 
 @app.get("/health")
@@ -61,7 +63,17 @@ async def investigate(request: InvestigationRequest) -> dict[str, object]:
         raise HTTPException(status_code=503, detail=str(error)) from error
     except NotImplementedError as error:
         raise HTTPException(status_code=501, detail=str(error)) from error
-    return result.model_dump(mode="json")
+    response = result.model_dump(mode="json")
+    if request.agent_task_id:
+        proposal = await action_tool.submit_shipment_status_update(
+            request.agent_task_id,
+            request.shipment_id,
+            "InTransit",
+            "; ".join(result.evidence),
+        )
+        response["proposalId"] = proposal.get("proposalId")
+        response["approvalRequestId"] = proposal.get("approvalRequestId")
+    return response
 
 
 @app.post("/api/v1/evaluations", status_code=200)

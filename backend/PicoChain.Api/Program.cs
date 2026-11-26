@@ -106,13 +106,15 @@ app.MapPost("/api/v1/copilot/investigate", async (
     }
 
     var investigation = System.Text.Json.JsonSerializer.Deserialize<AiInvestigationResponse>(body)!;
-    var proposal = await executionGateway.SubmitRecommendationAsync(
-        new AgentRecommendation(
-            task.AgentTaskId,
-            "UpdateShipmentStatus",
-            System.Text.Json.JsonSerializer.Serialize(new { shipmentId = request.ShipmentId, newStatus = "InTransit" }),
-            string.Join("; ", investigation.Evidence)),
-        cancellationToken);
+    var proposal = investigation.ProposalId.HasValue && investigation.ApprovalRequestId.HasValue
+        ? new ActionProposalResult(investigation.ProposalId.Value, investigation.ApprovalRequestId.Value, "Proposed")
+        : await executionGateway.SubmitRecommendationAsync(
+            new AgentRecommendation(
+                task.AgentTaskId,
+                "UpdateShipmentStatus",
+                System.Text.Json.JsonSerializer.Serialize(new { shipmentId = request.ShipmentId, newStatus = "InTransit" }),
+                string.Join("; ", investigation.Evidence)),
+            cancellationToken);
     await lifecycleService.CompleteAsync(task.AgentTaskId, cancellationToken);
     eventHub.Publish("agent-task-completed", new { agentTaskId = task.AgentTaskId, proposalId = proposal?.ProposalId });
     return Results.Ok(new { investigation, agentTaskId = task.AgentTaskId, proposal });
@@ -357,7 +359,9 @@ public sealed record AiInvestigationResponse(
     [property: System.Text.Json.Serialization.JsonPropertyName("recommended_action")] string RecommendedAction,
     [property: System.Text.Json.Serialization.JsonPropertyName("requires_approval")] bool RequiresApproval,
     [property: System.Text.Json.Serialization.JsonPropertyName("confidence")] double Confidence,
-    [property: System.Text.Json.Serialization.JsonPropertyName("decision_summary")] string DecisionSummary);
+    [property: System.Text.Json.Serialization.JsonPropertyName("decision_summary")] string DecisionSummary,
+    [property: System.Text.Json.Serialization.JsonPropertyName("proposalId")] Guid? ProposalId = null,
+    [property: System.Text.Json.Serialization.JsonPropertyName("approvalRequestId")] Guid? ApprovalRequestId = null);
 
 public partial class Program
 {
