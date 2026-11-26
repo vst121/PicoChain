@@ -11,7 +11,12 @@ export class DashboardComponent {
   readonly pendingApprovals = signal(0);
   readonly activeAgents = signal(0);
 
-  constructor() { void this.load(); }
+  constructor() {
+    void this.load();
+    const events = new EventSource(`${environment.apiBaseUrl.replace('/api/v1', '')}/api/v1/events`);
+    events.addEventListener('shipment-delayed', () => void this.load());
+    events.addEventListener('approval-updated', () => void this.load());
+  }
 
   private async load(): Promise<void> {
     const [shipments, approvals, agents] = await Promise.all([

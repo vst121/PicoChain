@@ -14,6 +14,7 @@ builder.Services.AddCors(options => options.AddPolicy("frontend", policy =>
         .AllowAnyMethod()));
 builder.Services.AddHttpClient("ai-service", client =>
     client.BaseAddress = new Uri(builder.Configuration["AiService:BaseUrl"] ?? "http://localhost:8000"));
+builder.Services.AddSingleton<RealtimeEventHub>();
 builder.Services.AddHealthChecks();
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddOpenTelemetry()
@@ -29,6 +30,14 @@ builder.Services.AddOpenTelemetry()
 var app = builder.Build();
 
 app.UseCors("frontend");
+
+app.MapGet("/api/v1/events", async (HttpResponse response, RealtimeEventHub hub, CancellationToken cancellationToken) =>
+{
+    response.Headers.ContentType = "text/event-stream";
+    response.Headers.CacheControl = "no-cache";
+    await foreach (var message in hub.ReadAllAsync(cancellationToken))
+        await response.WriteAsync(message, cancellationToken);
+});
 
 app.MapGet("/health", () => Results.Ok(new { status = "ok", service = "picochain-api" }));
 
@@ -70,6 +79,7 @@ app.MapPost("/api/v1/shipments/{id:guid}/delay", async (
     DelayShipmentRequest request,
     HttpContext httpContext,
     IShipmentEventService shipmentEventService,
+    RealtimeEventHub eventHub,
     CancellationToken cancellationToken) =>
 {
     var correlationId = httpContext.Request.Headers["X-Correlation-Id"].FirstOrDefault()
@@ -82,15 +92,18 @@ app.MapPost("/api/v1/shipments/{id:guid}/delay", async (
         traceParent,
         cancellationToken);
 
+    if (updated) eventHub.Publish("shipment-delayed", new { shipmentId = id, correlationId });
     return updated ? Results.Accepted() : Results.NotFound();
 });
 
 app.MapPost("/api/v1/approvals/{id:guid}/approve", async (
     Guid id,
     IApprovalService approvalService,
+    RealtimeEventHub eventHub,
     CancellationToken cancellationToken) =>
 {
     var result = await approvalService.ApproveAsync(id, "development-user", cancellationToken);
+    if (result is not null) eventHub.Publish("approval-updated", result);
     return result is null ? Results.NotFound() : Results.Ok(result);
 });
 
@@ -176,9 +189,11 @@ app.MapPost("/internal/agent-gateway/recommendations", async (
 app.MapPost("/api/v1/approvals/{id:guid}/reject", async (
     Guid id,
     IApprovalService approvalService,
+    RealtimeEventHub eventHub,
     CancellationToken cancellationToken) =>
 {
     var result = await approvalService.RejectAsync(id, "development-user", cancellationToken);
+    if (result is not null) eventHub.Publish("approval-updated", result);
     return result is null ? Results.NotFound() : Results.Ok(result);
 });
 
