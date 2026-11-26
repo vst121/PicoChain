@@ -3,11 +3,22 @@ using PicoChain.Application.Shipments;
 using PicoChain.Application.Approvals;
 using PicoChain.Application.Agents;
 using PicoChain.Application.Auditing;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddHealthChecks();
 builder.Services.AddInfrastructure(builder.Configuration);
+builder.Services.AddOpenTelemetry()
+    .ConfigureResource(resource => resource.AddService("picochain-api"))
+    .WithTracing(tracing => tracing
+        .AddAspNetCoreInstrumentation()
+        .AddHttpClientInstrumentation()
+        .AddOtlpExporter(options =>
+        {
+            options.Endpoint = new Uri(builder.Configuration["OpenTelemetry:Endpoint"] ?? "http://localhost:4317");
+        }));
 
 var app = builder.Build();
 
