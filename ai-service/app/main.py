@@ -9,6 +9,13 @@ from app.services.evaluator import evaluate_investigation
 from app.services.investigator import ShipmentInvestigator
 from app.services.settings import settings
 from app.services.event_consumer import consume_shipment_delays
+from opentelemetry import trace
+from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
+from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+from opentelemetry.instrumentation.httpx import HTTPXClientInstrumentor
+from opentelemetry.sdk.resources import Resource
+from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.sdk.trace.export import BatchSpanProcessor
 
 consumer_task: asyncio.Task | None = None
 stop_event = asyncio.Event()
@@ -29,6 +36,11 @@ async def lifespan(_: FastAPI):
 
 
 app = FastAPI(title="PicoChain AI Service", version="0.1.0", lifespan=lifespan)
+provider = TracerProvider(resource=Resource.create({"service.name": "picochain-ai-service"}))
+provider.add_span_processor(BatchSpanProcessor(OTLPSpanExporter(endpoint=settings.otlp_endpoint, insecure=True)))
+trace.set_tracer_provider(provider)
+FastAPIInstrumentor.instrument_app(app)
+HTTPXClientInstrumentor().instrument()
 investigator = ShipmentInvestigator(settings)
 
 

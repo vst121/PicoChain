@@ -12,6 +12,7 @@ class Settings(BaseSettings):
     rabbitmq_url: str = "amqp://picochain:development-only@localhost:5672/"
     rabbitmq_exchange: str = "picochain.events"
     rabbitmq_queue: str = "picochain.ai.shipment-delays"
+    otlp_endpoint: str = "http://localhost:4317"
 
 
 settings = Settings()
