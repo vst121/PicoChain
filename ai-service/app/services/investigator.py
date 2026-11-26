@@ -8,6 +8,7 @@ from app.services.settings import Settings
 from app.tools.shipment_tools import ShipmentContextTool
 from app.observability.langfuse import LangfuseClient
 from app.observability.costs import calculate_usage_cost
+from app.services.retrieval import retrieve_relevant_context
 
 
 class ShipmentInvestigator:
@@ -39,9 +40,10 @@ class ShipmentInvestigator:
                 name="shipment-agent",
             )
 
+        retrieved_context = retrieve_relevant_context(context, "shipment delay probable cause resolution")
         prompt = (
             f"Investigate shipment {shipment_id}. Backend context JSON follows:\n"
-            f"{context}\n\n"
+            f"{retrieved_context}\n\n"
             "Identify the probable cause, cite concrete evidence fields, and recommend the next action."
         )
         result = await self.agent.run(prompt)
