@@ -8,5 +8,19 @@ import { ObservabilityComponent } from './features/observability/observability.c
 import { AuditComponent } from './features/audit/audit.component';
 import { OrdersComponent } from './features/orders/orders.component';
 import { EvaluationsComponent } from './features/evaluations/evaluations.component';
+import { LoginComponent } from './features/auth/login.component';
+import { authGuard } from './core/auth.guard';
 
-export const routes: Routes = [{ path: '', component: DashboardComponent }, { path: 'shipments', component: ShipmentsComponent }, { path: 'orders', component: OrdersComponent }, { path: 'approvals', component: ApprovalsComponent }, { path: 'agent-control', component: AgentControlComponent }, { path: 'ai-copilot', component: AiCopilotComponent }, { path: 'observability', component: ObservabilityComponent }, { path: 'audit', component: AuditComponent }, { path: 'evaluations', component: EvaluationsComponent }, { path: '**', redirectTo: '' }];
+export const routes: Routes = [
+  { path: 'login', component: LoginComponent },
+  { path: '', component: DashboardComponent, canActivate: [authGuard] },
+  { path: 'shipments', component: ShipmentsComponent, canActivate: [authGuard] },
+  { path: 'orders', component: OrdersComponent, canActivate: [authGuard] },
+  { path: 'approvals', component: ApprovalsComponent, canActivate: [authGuard] },
+  { path: 'agent-control', component: AgentControlComponent, canActivate: [authGuard] },
+  { path: 'ai-copilot', component: AiCopilotComponent, canActivate: [authGuard] },
+  { path: 'observability', component: ObservabilityComponent, canActivate: [authGuard] },
+  { path: 'audit', component: AuditComponent, canActivate: [authGuard] },
+  { path: 'evaluations', component: EvaluationsComponent, canActivate: [authGuard] },
+  { path: '**', redirectTo: '' },
+];

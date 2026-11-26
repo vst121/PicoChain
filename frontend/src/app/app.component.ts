@@ -1,5 +1,6 @@
-import { Component } from '@angular/core';
-import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { Component, inject } from '@angular/core';
+import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { AuthService } from './core/auth.service';
 
 @Component({
   selector: 'app-root',
@@ -28,10 +29,18 @@ import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
         <div class="sidebar-footer"><span class="status-dot"></span> Platform online</div>
       </aside>
       <section class="workspace">
-        <header class="topbar"><span class="eyebrow">Operations workspace</span><span class="environment">Development</span></header>
+        <header class="topbar"><span class="eyebrow">Operations workspace</span><span class="user-menu">{{ auth.user()?.name }} · {{ auth.user()?.role }} <button (click)="logout()">Sign out</button></span></header>
         <main class="content"><router-outlet /></main>
       </section>
     </div>
   `,
 })
-export class AppComponent {}
+export class AppComponent {
+  readonly auth = inject(AuthService);
+  private readonly router = inject(Router);
+
+  logout(): void {
+    this.auth.logout();
+    void this.router.navigateByUrl('/login');
+  }
+}
