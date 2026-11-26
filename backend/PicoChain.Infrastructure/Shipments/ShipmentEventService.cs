@@ -25,13 +25,14 @@ public sealed class ShipmentEventService(PicoChainDbContext dbContext) : IShipme
 
         var occurredAt = DateTimeOffset.UtcNow;
         shipment.MarkDelayed();
-        shipment.Events.Add(new Domain.Entities.ShipmentEvent
+        var shipmentEvent = new Domain.Entities.ShipmentEvent
         {
             ShipmentId = shipment.Id,
             EventType = "ShipmentDelayed",
             OccurredAt = occurredAt,
             Description = reason
-        });
+        };
+        dbContext.ShipmentEvents.Add(shipmentEvent);
 
         var delayedEvent = new ShipmentDelayedV1(
             Guid.NewGuid(),
