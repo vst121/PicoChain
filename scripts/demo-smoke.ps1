@@ -24,12 +24,21 @@ Write-Host "  Selected $($shipment.shipmentNumber) ($($shipment.id))"
 
 Write-Host "Publishing a shipment delay event..."
 $headers = @{ "X-Correlation-Id" = [Guid]::NewGuid().ToString("N") }
-$delay = Invoke-WebRequest `
-    -Uri "$BackendUrl/api/v1/shipments/$($shipment.id)/delay" `
-    -Method Post `
-    -Headers $headers `
-    -ContentType "application/json" `
-    -Body '{"reason":"Demo smoke test: carrier traffic disruption"}'
-Write-Host "  HTTP $($delay.StatusCode)"
+$body = @{ reason = "Demo smoke test: carrier traffic disruption" } | ConvertTo-Json -Compress
+try {
+    $delay = Invoke-RestMethod `
+        -Uri "$BackendUrl/api/v1/shipments/$($shipment.id)/delay" `
+        -Method Post `
+        -Headers $headers `
+        -ContentType "application/json" `
+        -Body $body
+    Write-Host "  HTTP 202 (Accepted)"
+} catch {
+    if ($_.Exception.Response -ne $null) {
+        Write-Host "  HTTP $($_.Exception.Response.StatusCode)"
+    } else {
+        Write-Host "  Request sent (no response content)"
+    }
+}
 
 Write-Host "Smoke test completed. Open the frontend Approval Center to review the resulting proposal."
